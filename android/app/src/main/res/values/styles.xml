@@ -1,0 +1,17 @@
+<resources>
+    <style name="SplashTheme" parent="SplashScreen_SplashTheme">
+        <item name="colorPrimaryDark">#1CADB2</item>
+    </style>
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+<!--        <item name="statusBarBackground">@color/statusBar</item>-->
+<!--        <item name="statusBarForeground">@color/statusBar</item>-->
+    </style>
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
+</resources>

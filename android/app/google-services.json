@@ -1,0 +1,46 @@
+{
+    "project_info": {
+      "project_number": "80357492901",
+      "project_id": "ompass-cceb6",
+      "storage_bucket": "ompass-cceb6.appspot.com"
+    },
+    "client": [
+      {
+        "client_info": {
+          "mobilesdk_app_id": "1:80357492901:android:1746064d57434acd6de54c",
+          "android_client_info": {
+            "package_name": "kr.omsecurity.ompass"
+          }
+        },
+        "oauth_client": [
+          {
+            "client_id": "80357492901-il9rcoetjkc6ltg61b7o7jdvg91ebu3m.apps.googleusercontent.com",
+            "client_type": 3
+          }
+        ],
+        "api_key": [
+          {
+            "current_key": "AIzaSyD97rsMZic9LRGmhJY5jv7bNPgaPtfJTgA"
+          }
+        ],
+        "services": {
+          "appinvite_service": {
+            "other_platform_oauth_client": [
+              {
+                "client_id": "80357492901-il9rcoetjkc6ltg61b7o7jdvg91ebu3m.apps.googleusercontent.com",
+                "client_type": 3
+              },
+              {
+                "client_id": "80357492901-33duqban9678rojfs9ccn77c66qnsfeu.apps.googleusercontent.com",
+                "client_type": 2,
+                "ios_info": {
+                  "bundle_id": "kr.omsecurity.ompass"
+                }
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "configuration_version": "1"
+  }

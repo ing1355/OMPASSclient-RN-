@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="21507" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+    <device id="retina5_5" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="21505"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="EHf-IW-A2E">
+            <objects>
+                <viewController id="01J-lp-oVM" sceneMemberID="viewController">
+                    <view key="view" userInteractionEnabled="NO" contentMode="scaleToFill" id="Ze5-6b-2t3">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="736"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="SplashImage" translatesAutoresizingMaskIntoConstraints="NO" id="Ypz-oy-CG7">
+                                <rect key="frame" x="-414" y="-976" width="1242" height="2688"/>
+                            </imageView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="logo" translatesAutoresizingMaskIntoConstraints="NO" id="Ajd-TK-qXW">
+                                <rect key="frame" x="157" y="569" width="100" height="67"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="100" id="Ztz-L9-ebH"/>
+                                </constraints>
+                            </imageView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="logo_head" translatesAutoresizingMaskIntoConstraints="NO" id="qPJ-sT-20F" userLabel="logo_head">
+                                <rect key="frame" x="132" y="160" width="150" height="50"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="DiU-eL-7sY"/>
+                                    <constraint firstAttribute="width" constant="150" id="fzJ-1r-oGb"/>
+                                </constraints>
+                            </imageView>
+                            <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="middleTruncation" numberOfLines="2" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G9N-TQ-2tA">
+                                <rect key="frame" x="90.666666666666686" y="220" width="233" height="30"/>
+                                <attributedString key="attributedText">
+                                    <fragment content="차세대 통합 인증 솔루션">
+                                        <attributes>
+                                            <color key="NSColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                            <font key="NSFont" metaFont="system" size="25"/>
+                                            <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural" tighteningFactorForTruncation="0.0"/>
+                                            <integer key="NSUnderline" value="1"/>
+                                        </attributes>
+                                    </fragment>
+                                </attributedString>
+                                <nil key="highlightedColor"/>
+                            </label>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="Bcu-3y-fUS"/>
+                        <constraints>
+                            <constraint firstItem="Ypz-oy-CG7" firstAttribute="width" secondItem="Ze5-6b-2t3" secondAttribute="width" multiplier="3" id="2SM-01-yxI"/>
+                            <constraint firstItem="Ajd-TK-qXW" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="7gr-15-8dt"/>
+                            <constraint firstItem="Bcu-3y-fUS" firstAttribute="bottom" secondItem="Ajd-TK-qXW" secondAttribute="bottom" constant="100" id="Bcd-bT-JnM"/>
+                            <constraint firstItem="qPJ-sT-20F" firstAttribute="top" secondItem="Bcu-3y-fUS" secondAttribute="top" constant="160" id="Dwj-HZ-poQ"/>
+                            <constraint firstItem="Ypz-oy-CG7" firstAttribute="height" secondItem="Ze5-6b-2t3" secondAttribute="height" multiplier="3.65217" id="EcC-3v-eh0"/>
+                            <constraint firstItem="qPJ-sT-20F" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="KiP-Jm-B0I"/>
+                            <constraint firstItem="Ypz-oy-CG7" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="OmQ-y3-PYl"/>
+                            <constraint firstItem="G9N-TQ-2tA" firstAttribute="centerX" secondItem="Bcu-3y-fUS" secondAttribute="centerX" id="RGv-DK-kSf"/>
+                            <constraint firstItem="G9N-TQ-2tA" firstAttribute="top" secondItem="qPJ-sT-20F" secondAttribute="bottom" constant="10" id="lWB-Mx-ESc"/>
+                            <constraint firstItem="Ypz-oy-CG7" firstAttribute="centerY" secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="vuh-cC-cYi"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="iYj-Kq-Ea1" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="50.399999999999999" y="373.76311844077964"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="SplashImage" width="414" height="896.33331298828125"/>
+        <image name="logo" width="129" height="67"/>
+        <image name="logo_head" width="168" height="36.666667938232422"/>
+    </resources>
+</document>
