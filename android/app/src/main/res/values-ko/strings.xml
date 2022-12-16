@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">원모어패스</string>
+    <string name="splash_text"><u>차세대 통합 인증 솔루션</u></string>
+    <string name="dialog_select_credential">Select a Credential</string>
+    <string name="notification_title_string">OMPASS 인증</string>
+    <string name="notification_message_string">%1$s 아이디로 로그인 요청</string>
+    <string name="channel_title">인증 알림</string>
+</resources>

@@ -1,0 +1,11 @@
+framework module WebAuthnKit {
+  umbrella header "WebAuthnKit.h"
+
+  export *
+  module * { export * }
+}
+
+module WebAuthnKit.Swift {
+  header "WebAuthnKit-Swift.h"
+  requires objc
+}

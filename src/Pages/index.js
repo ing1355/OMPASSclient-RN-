@@ -1,0 +1,14 @@
+export { default as Home } from './Home';
+export { default as QrCode } from './layout/QrCode';
+export { default as Auth_Ing } from './layout/Auth_Ing';
+export { default as Auth_Complete } from './layout/Auth_Complete';
+export { default as Setting } from './Settings/Setting';
+export { default as Logs } from './Menu/Logs/Logs';
+export { default as Auth_Fail } from './layout/Auth_Fail';
+export { default as Pin } from './layout/Pin';
+export { default as Pattern } from './layout/Pattern';
+export { default as Biometric } from './layout/Biometric';
+export { default as Fingerprint } from './layout/Fingerprint';
+export { default as Face } from './layout/Face';
+export { default as AppSetting } from './layout/AppSetting';
+export { default as LogsNum } from './layout/LogsNum';

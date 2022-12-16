@@ -1,0 +1,8 @@
+app_identifier("kr.omsecurity.ompass") # The bundle identifier of your app
+apple_id("hozzi@omsecurity.kr") # Your Apple email address
+
+itc_team_id("121614716") # App Store Connect Team ID
+team_id("YXVKTRBYQ7") # Developer Portal Team ID
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile

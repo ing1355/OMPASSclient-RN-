@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             android:orientation="vertical"
+             android:gravity="center_vertical|center_horizontal"
+             tools:ignore="Deprecated">
+
+    <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/launch_screen"
+    />
+    <ImageView
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="230dp"
+        android:layout_gravity="center_horizontal|top"
+        android:src="@drawable/splash_logo"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|top"
+        android:layout_marginTop="300dp"
+        android:singleLine="false"
+        android:text="@string/splash_text"
+        android:textColor="#ffffff"
+        android:textAlignment="center"
+        android:textIsSelectable="false"
+        android:gravity="center_horizontal"
+        android:textSize="24sp"
+        android:typeface="sans" />
+    <ImageView
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:layout_marginBottom="100dp"
+            android:layout_gravity="center_horizontal|bottom"
+            android:src="@drawable/oms_logo"
+    />
+</FrameLayout>
+

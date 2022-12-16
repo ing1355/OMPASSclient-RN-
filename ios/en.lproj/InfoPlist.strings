@@ -1,0 +1,2 @@
+NSCameraUsageDescription = "Camera access for QR recognition";
+CFBundleDisplayName = "OMPASS";
