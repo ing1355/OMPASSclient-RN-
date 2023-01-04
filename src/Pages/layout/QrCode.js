@@ -1,20 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Platform, Pressable, Image, Vibration, Animated } from 'react-native';
+import { View, Text, Pressable, Image, Animated } from 'react-native';
 import styles from '../../styles/QrCode';
-import webAuthn from '../../Auth/webAuthn';
-import { CustomNotification } from '../../Components/CustomAlert';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { connect } from 'react-redux';
 import ActionCreators from '../../global_store/actions';
-import RegisterAuthentication from '../../Auth/RegisterAuthentication';
 import * as RootNavigation from '../../Route/Router';
 import { translate } from '../../../App';
 import FidoAuthentication from '../../Function/FidoAuthentication';
-import { GetClientInfo } from '../../Function/GetClientInfo';
-import RNFetchBlob from 'rn-fetch-blob';
 import { CameraScreen } from 'react-native-camera-kit';
-import { AsyncStorageFcmTokenKey } from '../../Constans/ContstantValues';
-import { saveAuthLogByResult } from '../../Function/GlobalFunction';
+import { getDataByNonce } from '../../Function/GlobalFunction';
 
 const animationTime = 3000
 
@@ -62,7 +55,6 @@ const QrCode = (props) => {
   }
 
   async function onSuccess(e) {
-    console.log(e.nativeEvent.codeStringValue)
     if (!scanRef.current) {
       scanRef.current = true;
       const qrData = e.nativeEvent.codeStringValue;
@@ -72,37 +64,17 @@ const QrCode = (props) => {
           scanRef.current = false;
           return;
         } else {
-          RNFetchBlob.config({
-            trusty: true,
-          })
-            .fetch(
-              'POST',
-              url,
-              {
-                'Content-Type': 'application/json',
-              },
-              JSON.stringify(userId ? {
-                nonce: param,
-                userId
-              } : {
-                  nonce: param
-                }),
-            )
-            .then(async (resp) => {
-              const { data } = resp;
-              const result = JSON.parse(data);
-              props.loadingToggle(true);
-              setQr_result(result);
-              setTimeout(() => {
-                props.loadingToggle(false);
-                Qr_complete(result);
-              }, 100);
-            })
-            .catch((err) => {
-              console.log(err);
-              scanRef.current = false;
+          getDataByNonce(url, param, userId, (result) => {
+            props.loadingToggle(true);
+            setQr_result(result);
+            setTimeout(() => {
               props.loadingToggle(false);
-            });
+              setExecute(true)
+            }, 100);
+          }, err => {
+            scanRef.current = false;
+            props.loadingToggle(false);
+          })
         }
       } else {
         scanRef.current = false;
@@ -110,84 +82,6 @@ const QrCode = (props) => {
     }
   }
 
-  async function Qr_complete(result) {
-    Vibration.vibrate();
-    const { loadingToggle } = props;
-    const {
-      procedure,
-      domain,
-      accessKey,
-      username,
-      displayName,
-      redirectUri,
-      did,
-      fidoAddress,
-      clientInfo,
-    } = result;
-    console.log(result)
-    if (procedure === 'reg') {
-      webAuthn.PreRegister(
-        fidoAddress,
-        domain,
-        accessKey,
-        username,
-        displayName,
-        redirectUri,
-        Number(did),
-        function (err) {
-          console.log('pre register err ? : ', err);
-          loadingToggle(false);
-          saveAuthLogByResult('reg', false, result)
-          setTimeout(() => {
-            RootNavigation.replace('Auth_Fail', {
-              type: 'OMPASSRegist',
-              reason: err,
-            });
-          }, 10);
-        },
-        (suc) => {
-          const { authorization, challenge, userId } =
-            Platform.OS === 'android' ? JSON.parse(suc) : suc;
-          console.log('preRigster suc : ', suc);
-          const Register_Callback = async () => {
-            webAuthn.Register(
-              fidoAddress,
-              domain,
-              accessKey,
-              username,
-              await GetClientInfo(clientInfo),
-              displayName,
-              await AsyncStorage.getItem(AsyncStorageFcmTokenKey),
-              authorization,
-              challenge,
-              userId,
-              function (err) {
-                console.log('register err ? : ', err);
-                saveAuthLogByResult('reg',false, result)
-                RootNavigation.replace('Auth_Fail', {
-                  type: 'OMPASSRegist',
-                  reason: err,
-                });
-              },
-              async (msg) => {
-                console.log('msg : ', msg);
-                loadingToggle(false);
-                console.log('1')
-                saveAuthLogByResult('reg', true, result)
-                console.log('2')
-                setTimeout(() => {
-                  RootNavigation.replace('Auth_Complete', 'OMPASSRegist');
-                }, 10);
-              },
-            );
-          };
-          return RegisterAuthentication(props.currentAuth, Register_Callback);
-        },
-      );
-    } else if (procedure === 'auth') {
-      setExecute(true);
-    }
-  }
   return (
     <>
       <FidoAuthentication

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageLogKey, AsyncStorageAppSettingKey } from '../Constans/ContstantValues';
+import RNFetchBlob from 'rn-fetch-blob';
 
 const getTimeDoubleFormat = time => {
     return time >= 10 ? time : '0' + time
@@ -95,4 +96,32 @@ export const saveAuthLogByResult = async (type, result, authData) => {
     }
     
     await AsyncStorage.setItem(AsyncStorageLogKey, JSON.stringify(logs))
+}
+
+export const getDataByNonce = (url, nonce, userId, successCallback, errorCallback) => {
+    RNFetchBlob.config({
+        trusty: true,
+      })
+        .fetch(
+          'POST',
+          url,
+          {
+            'Content-Type': 'application/json',
+          },
+          JSON.stringify(userId ? {
+            nonce,
+            userId
+          } : {
+              nonce
+            }),
+        )
+        .then(async (resp) => {
+          const { data } = resp;
+          const result = JSON.parse(data);
+          if(successCallback) successCallback(result)
+        })
+        .catch((err) => {
+          console.log(err);
+          if(errorCallback) errorCallback(err)
+        });
 }

@@ -4,7 +4,7 @@ import Pattern from './Pattern'
 import Face from './Face';
 import Fingerprint from './Fingerprint';
 
-export default function RegisterAuthentication(auth,callback, fidoAddress, username) {
+export default function RegisterAuthentication(auth,callback) {
     switch(auth) {
         case 'biometrics':
             return BioMetric({type: "등록", callback});

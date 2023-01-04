@@ -27,12 +27,19 @@
         android:windowSoftInputMode="adjustResize"
           android:screenOrientation="portrait"
         android:exported="true">
-        <intent-filter>
+        <intent-filter android:autoVerify="true">
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
             <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"/>
             <action android:name="android.hardware.usb.action.USB_STATE"/>
         </intent-filter>
+          <intent-filter android:autoVerify="true">
+              <action android:name="android.intent.action.VIEW"/>
+              <category android:name="android.intent.category.DEFAULT"/>
+              <category android:name="android.intent.category.BROWSABLE"/>
+              <data android:scheme="ompass"/>
+          </intent-filter>
+
           <meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" android:resource="@xml/device_filter"/>
           <meta-data android:name="android.hardware.usb.action.USB_DEVICE_STATE" android:resource="@xml/device_filter"/>
       </activity>

@@ -30,7 +30,7 @@ import { Linking } from 'react-native';
 import JailMonkey from 'jail-monkey'
 import { initSecurity } from '../Auth/Security';
 import { AuthenticationsConst } from '../Constans/Authentications';
-import {I18n} from 'i18n-js';
+import { I18n } from 'i18n-js';
 import NetInfo from '@react-native-community/netinfo';
 import CustomStatusBar from './CustomStatusBar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -38,9 +38,8 @@ import { AsyncStorageAppSettingKey, AsyncStorageAuthenticationsKey, AsyncStorage
 import { settingChange } from '../global_store/actions/settingChange';
 import { CheckPermission } from '../Components/CheckPermissions';
 import * as RootNavigation from '../Route/Router'
-import {ENVIRONMENT} from '@env'
+import { ENVIRONMENT } from '@env'
 
-console.log('env : ',ENVIRONMENT)
 const isDev = ENVIRONMENT === 'dev'
 const Stack = createStackNavigator();
 let { height } = Dimensions.get('window');
@@ -52,7 +51,7 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
   const [inAppError, setInAppError] = useState(false);
   const [initComplete, setInitComplete] = useState(false);
   const routeNameRef = useRef(null);
-  const {appSettings} = useSelector(state => ({
+  const { appSettings } = useSelector(state => ({
     appSettings: state.appSettings
   }))
   const dispatch = useDispatch()
@@ -109,10 +108,8 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
   const customExitApp = () => {
     // if(Platform.OS === 'android') DeviceEventEmitter.removeAllListeners('isUsbConnectedEvent');
     setTimeout(() => {
-      setTimeout(() => {
-        NativeModules.CustomSystem.ExitApp();
-      }, 100);
-    }, 4900);
+      NativeModules.CustomSystem.ExitApp();
+    }, 5000);
   }
 
   const firstSettingFunc = async () => {
@@ -223,7 +220,7 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
     const loadAppSetting = async () => {
       await CheckPermission('All')
       const settings = await AsyncStorage.getItem(AsyncStorageAppSettingKey)
-      if(settings) {
+      if (settings) {
         dispatch(settingChange({
           ...appSettings,
           ...JSON.parse(settings)
@@ -242,23 +239,23 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
     if (!isJailBroken) {
       if (Platform.OS === 'android') {
         NativeModules.CheckADB.isADB(adb => {
-          if(isDev) adb = false
+          if (isDev) adb = false
           usbConnectedChange({ isChecked: true, usbConnected: adb })
           if (!adb) {
-            if(!isDev) {
+            if (!isDev) {
               DeviceEventEmitter.addListener('isUsbConnectedEvent', (data) => {
                 usbConnectedChange({ isChecked: true, usbConnected: data })
               })
             }
             checkForgeryFunc();
             return () => {
-              if(!isDev) DeviceEventEmitter.removeAllListeners('isUsbConnectedEvent');
+              if (!isDev) DeviceEventEmitter.removeAllListeners('isUsbConnectedEvent');
             }
           }
         })
       } else {
         JailMonkey.isDebuggedMode().then(res => {
-          if(isDev) res = false
+          if (isDev) res = false
           if (res) {
             SplashScreen.hide();
           } else {
@@ -274,171 +271,171 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
 
   return (
     <>
-    <SafeAreaProvider>
-      <CustomStatusBar navigationRef={navigationRef}/>
-      <NavigationContainer ref={navigationRef} onStateChange={onStateChange}>
-        {StackContainer}
-      </NavigationContainer>
-      {Platform.OS === 'android' && <CustomNotification
-        title={translate("first_setting_title")}
-        msg={
-          !initComplete ? <>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("first_setting_msg_1")}
-            </Text>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("first_setting_msg_2")}
-            </Text>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("first_setting_msg_3")}
-            </Text>
-          </> : <>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("first_setting_msg_4")}
-            </Text>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("first_setting_msg_5")}
-            </Text>
-          </>
-        }
-        modalClose={() => {
-          setFirstSetting(true)
-        }}
-        noConfirm={!initComplete}
-        modalOpen={!firstSetting && isRoot.isChecked && isForgery.isChecked && usbConnected.isChecked && needUpdate.isChecked}
-      />}
-      <CustomNotification
-        title={translate("in_app_error_title")}
-        confirm_style={{ backgroundColor: '#666666' }}
-        onLayout={() => {
-          customExitApp();
-        }}
-        msg={
-          <>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("in_app_error_msg_1")}
-            </Text>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("in_app_error_msg_2")}
-            </Text>
-          </>
-        }
-        modalOpen={inAppError}
-        noConfirm
-      />
-      <CustomConfirmModal
-        title={translate("needs_update_app")}
-        confirm_style={{ backgroundColor: '#666666' }}
-        msg={
-          <>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("needs_update_app_msg_1")}
-            </Text>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("needs_update_app_msg_2")}
-            </Text>
-          </>
-        }
-        modalOpen={needUpdate.needUpdate}
-        callback={() => {
-          if (Platform.OS === 'android') Linking.openURL("market://details?id=kr.omsecurity.ompass")
-          else {
-            const i18n = new I18n()
-            const locale = i18n.locale || i18n.defaultLocale
-            if (locale === 'ko') Linking.openURL("https://apps.apple.com/kr/app/%EC%9B%90%EB%AA%A8%EC%96%B4%ED%8C%A8%EC%8A%A4-ompass/id1547587526?mt=8")
-            else Linking.openURL("https://apps.apple.com/us/app/%EC%9B%90%EB%AA%A8%EC%96%B4%ED%8C%A8%EC%8A%A4-ompass/id1547587526?mt=8")
+      <SafeAreaProvider>
+        <CustomStatusBar navigationRef={navigationRef} />
+        <NavigationContainer ref={navigationRef} onStateChange={onStateChange}>
+          {StackContainer}
+        </NavigationContainer>
+        {Platform.OS === 'android' && <CustomNotification
+          title={translate("first_setting_title")}
+          msg={
+            !initComplete ? <>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("first_setting_msg_1")}
+              </Text>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("first_setting_msg_2")}
+              </Text>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("first_setting_msg_3")}
+              </Text>
+            </> : <>
+                <Text style={{ textAlign: 'center' }}>
+                  {translate("first_setting_msg_4")}
+                </Text>
+                <Text style={{ textAlign: 'center' }}>
+                  {translate("first_setting_msg_5")}
+                </Text>
+              </>
           }
-        }}
-        okText={translate("go_update_app")}
-        cancelText={translate("close")}
-        modalClose={() => {
-          updateToggle({ needUpdate: false, isChecked: true })
-          firstSettingFunc();
-        }}
-      />
-      <CustomNotification
-        title={translate("is_ADB_title")}
-        noConfirm
-        confirm_style={{ backgroundColor: '#666666' }}
-        onLayout={() => {
-          customExitApp();
-        }}
-        msg={
-          <>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("is_ADB_msg_1")}
-            </Text>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("is_ADB_msg_2")}
-            </Text>
-          </>
-        }
-        modalOpen={usbConnected.isChecked && usbConnected.usbConnected}
-      />
-      <CustomNotification
-        title={translate("is_Rooting_title")}
-        noConfirm
-        confirm_style={{ backgroundColor: '#666666' }}
-        onLayout={() => {
-          customExitApp();
-        }}
-        msg={
-          <>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("is_Rooting_msg_1")}
-            </Text>
-          </>
-        }
-        modalOpen={isRoot.isChecked && isRoot.isRoot}
-      />
-      <CustomNotification
-        title={translate("is_Forgery_title")}
-        noConfirm
-        confirm_style={{ backgroundColor: '#666666' }}
-        onLayout={() => {
-          customExitApp();
-        }}
-        msg={
-          <>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("is_Forgery_msg_1")}
-            </Text>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("is_Forgery_msg_2")}
-            </Text>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("is_Forgery_msg_3")}
-            </Text>
-          </>
-        }
-        modalOpen={isForgery.isChecked && isForgery.isForgery}
-      />
-      <CustomNotification
-        title={translate("server_error_title")}
-        confirm_style={{ backgroundColor: '#666666' }}
-        msg={
-          <>
-            <Text style={{ textAlign: 'center' }}>
-              {translate("server_error_msg_1")}
-            </Text>
-            <Text style={{ textAlign: 'center' }}>
-              {translate(networkError ? "server_error_msg_2" : "server_error_msg_3")}
-            </Text>
-          </>
-        }
-        modalOpen={serverError || networkError}
-        callback={() => {
-          setNetworkError(false);
-          setServerError(false);
-          checkForgeryFunc();
-        }}
-        okText={translate("tryAgain")}
-        modalClose={() => {
-          setNetworkError(false);
-          setServerError(false);
-        }}
-      />
-    </SafeAreaProvider>
+          modalClose={() => {
+            setFirstSetting(true)
+          }}
+          noConfirm={!initComplete}
+          modalOpen={!firstSetting && isRoot.isChecked && isForgery.isChecked && usbConnected.isChecked && needUpdate.isChecked}
+        />}
+        <CustomNotification
+          title={translate("in_app_error_title")}
+          confirm_style={{ backgroundColor: '#666666' }}
+          onLayout={() => {
+            customExitApp();
+          }}
+          msg={
+            <>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("in_app_error_msg_1")}
+              </Text>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("in_app_error_msg_2")}
+              </Text>
+            </>
+          }
+          modalOpen={inAppError}
+          noConfirm
+        />
+        <CustomConfirmModal
+          title={translate("needs_update_app")}
+          confirm_style={{ backgroundColor: '#666666' }}
+          msg={
+            <>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("needs_update_app_msg_1")}
+              </Text>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("needs_update_app_msg_2")}
+              </Text>
+            </>
+          }
+          modalOpen={needUpdate.needUpdate}
+          callback={() => {
+            if (Platform.OS === 'android') Linking.openURL("market://details?id=kr.omsecurity.ompass")
+            else {
+              const i18n = new I18n()
+              const locale = i18n.locale || i18n.defaultLocale
+              if (locale === 'ko') Linking.openURL("https://apps.apple.com/kr/app/%EC%9B%90%EB%AA%A8%EC%96%B4%ED%8C%A8%EC%8A%A4-ompass/id1547587526?mt=8")
+              else Linking.openURL("https://apps.apple.com/us/app/%EC%9B%90%EB%AA%A8%EC%96%B4%ED%8C%A8%EC%8A%A4-ompass/id1547587526?mt=8")
+            }
+          }}
+          okText={translate("go_update_app")}
+          cancelText={translate("close")}
+          modalClose={() => {
+            updateToggle({ needUpdate: false, isChecked: true })
+            firstSettingFunc();
+          }}
+        />
+        <CustomNotification
+          title={translate("is_ADB_title")}
+          noConfirm
+          confirm_style={{ backgroundColor: '#666666' }}
+          onLayout={() => {
+            customExitApp();
+          }}
+          msg={
+            <>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("is_ADB_msg_1")}
+              </Text>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("is_ADB_msg_2")}
+              </Text>
+            </>
+          }
+          modalOpen={usbConnected.isChecked && usbConnected.usbConnected}
+        />
+        <CustomNotification
+          title={translate("is_Rooting_title")}
+          noConfirm
+          confirm_style={{ backgroundColor: '#666666' }}
+          onLayout={() => {
+            customExitApp();
+          }}
+          msg={
+            <>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("is_Rooting_msg_1")}
+              </Text>
+            </>
+          }
+          modalOpen={isRoot.isChecked && isRoot.isRoot}
+        />
+        <CustomNotification
+          title={translate("is_Forgery_title")}
+          noConfirm
+          confirm_style={{ backgroundColor: '#666666' }}
+          onLayout={() => {
+            customExitApp();
+          }}
+          msg={
+            <>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("is_Forgery_msg_1")}
+              </Text>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("is_Forgery_msg_2")}
+              </Text>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("is_Forgery_msg_3")}
+              </Text>
+            </>
+          }
+          modalOpen={isForgery.isChecked && isForgery.isForgery}
+        />
+        <CustomNotification
+          title={translate("server_error_title")}
+          confirm_style={{ backgroundColor: '#666666' }}
+          msg={
+            <>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("server_error_msg_1")}
+              </Text>
+              <Text style={{ textAlign: 'center' }}>
+                {translate(networkError ? "server_error_msg_2" : "server_error_msg_3")}
+              </Text>
+            </>
+          }
+          modalOpen={serverError || networkError}
+          callback={() => {
+            setNetworkError(false);
+            setServerError(false);
+            checkForgeryFunc();
+          }}
+          okText={translate("tryAgain")}
+          modalClose={() => {
+            setNetworkError(false);
+            setServerError(false);
+          }}
+        />
+      </SafeAreaProvider>
     </>
   )
 }

@@ -9,16 +9,14 @@ import { loadingToggle } from '../../global_store/actions/loadingToggle';
 import CustomOpacityButton from '../../Components/CustomOpacityButton';
 
 let timerId = 0
-const clearTime = 2
+const clearTime = 1
 const animationDuration = 350
 
 const Auth_Complete = (props) => {
     // props = {
     //     ...props,
     //     route: {
-    //         params: {
-    //             text: 'Regist'
-    //         }
+    //         params: 'Auth'
     //     }
     // }
     const {appSettings: {
@@ -26,12 +24,13 @@ const Auth_Complete = (props) => {
     }} = useSelector(state => ({
         appSettings: state.appSettings
     }))
+    // const exitAfterAuth = true
     const dispatch = useDispatch()
     const _loadingToggle = (toggle) => {
         dispatch(loadingToggle(toggle))
     }
     const [animationComplete, setAnimationComplete] = useState(false)
-    const [timerValue, setTimerValue] = useState(clearTime)
+    // const [timerValue, setTimerValue] = useState(clearTime)
     const [text, setText] = useState('Regist');
     const animation = useRef(new Animated.Value(0)).current;
     const overlayAnimation = useRef(new Animated.Value(0)).current;
@@ -58,12 +57,12 @@ const Auth_Complete = (props) => {
             })
             if(Platform.OS === 'android' && exitAfterAuth && !props.route.params.includes('Regist')) {
                 setTimeout(() => {
-                    clearInterval(timerId)
+                    // clearInterval(timerId)
                     NativeModules.CustomSystem.ExitApp()
-                }, clearTime * 1000);
-                timerId = setInterval(() => {
-                    setTimerValue(timer => timer - 1)
-                }, 1000);
+                }, clearTime * 1000 + animationDuration);
+                // timerId = setInterval(() => {
+                //     setTimerValue(timer => timer - 1)
+                // }, 1000);
             }
         });
 
