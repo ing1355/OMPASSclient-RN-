@@ -38,24 +38,20 @@ export function IsVerification(suc_callback, fail_callback) {
 
 export function AuthSecurity(value, auth_name, auth_type, suc_callback, err_callback) {
     Security(value, auth_name, auth_type, suc => {
-        console.log(suc);
         if (suc_callback) suc_callback(suc);
     }, err => {
-        console.log(err);
         if (err_callback) err_callback();
     });
 }
 
 export function initSecurity(suc_callback) {
     InitSecurity(suc => {
-        console.log(suc);
         if (suc_callback) suc_callback(suc);
     });
 }
 
 export function RemoveSecurity(auth_name, suc_callback, err_callback) {
     Remove(auth_name, (suc) => {
-        console.log('suc :: ',suc);
         if (suc_callback) suc_callback();
     }, (err) => {
         if (err_callback) err_callback();
@@ -72,7 +68,6 @@ export function RemoveAllSecurity(suc_callback, err_callback) {
 
 export function AuthenticateLock(err_count) {
     AuthLock(getRouteName(), (Math.floor(Date.now() / 1000) + (err_count - 4) * 30).toString(), cal => {
-        // console.log(cal);
     })
 }
 
@@ -102,6 +97,6 @@ export async function AuthenticateGetErrorCount(suc_callback) {
 
 export function AuthenticateResetErrorCount() {
     resetErrorCount(getRouteName(), cal => {
-        // console.log(cal);
+        
     })
 }

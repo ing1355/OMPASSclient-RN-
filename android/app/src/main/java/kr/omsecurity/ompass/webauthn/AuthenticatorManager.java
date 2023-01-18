@@ -335,7 +335,7 @@ public class AuthenticatorManager {
 
 
     @RequiresApi(api = Build.VERSION_CODES.P)
-    public void tryAuthenticate(String username, String authorization, String challenge, String userId, String clientInfo) {
+    public void tryAuthenticate(String username, String authorization, String challenge, String userId, String pushToken, String clientInfo) {
         String clientDataJSONDataForAuthenticate = getClientDataJosn(GET, challenge);
         MessageDigest digestAuthenticate = null;
         try {
@@ -425,7 +425,7 @@ public class AuthenticatorManager {
         }
 
         try {
-            KeyPair keyPair = this.credentialSafe.getKeyPairByAlias(source.keyPairAlias);
+            KeyPair keyPair = this.credentialSafe.getKeyPairByAlias(source.keyPairAlias, source.userDisplayName);
         } catch (VirgilException e) {
             e.printStackTrace();
         }
@@ -464,7 +464,7 @@ public class AuthenticatorManager {
                     String b64SelectedCredentialUserHandle = Base64.encodeToString(finalGetAssertionResult.selectedCredentialUserHandle, Base64.URL_SAFE | Base64.NO_WRAP).trim();
                     String b64AuthenticatorData = Base64.encodeToString(finalGetAssertionResult.authenticatorData, Base64.URL_SAFE | Base64.NO_WRAP).trim();
 
-                    String jsonRegister = makeResponseJSONForAuthenticate(b64AuthenticatorData, b64Signature, b64SelectedCredentialUserHandle, b64ClientDataJSON, userId, clientInfo);
+                    String jsonRegister = makeResponseJSONForAuthenticate(b64AuthenticatorData, b64Signature, b64SelectedCredentialUserHandle, b64ClientDataJSON, userId, pushToken, clientInfo);
                      System.out.println("Authenticate Json Data : " + jsonRegister);
                     try (OutputStream os = conAuthenticate.getOutputStream()) {
                         byte[] input = jsonRegister.getBytes("utf-8");
@@ -657,7 +657,7 @@ public class AuthenticatorManager {
     String makeResponseJSONForRegister(String cborB64,
                                        String b64ClientDataJSON,
                                        String userId,
-                                       String push_token,
+                                       String pushToken,
                                        String clientInfo) {
         return "{\"response\":{\"attestationObject\":\"" + cborB64 + "\"," +
                 "\"clientDataJSON\":\"" + b64ClientDataJSON +
@@ -665,12 +665,12 @@ public class AuthenticatorManager {
                 "\"rawId\":\"" + userId + "\"," +
                 "\"id\":\"" + userId + "\"," +
                 "\"type\":\"public-key\"," +
-                "\"ompass\":{\"pushToken\":\"" + push_token + "\"," +
+                "\"ompass\":{\"pushToken\":\"" + pushToken + "\"," +
                 "\"clientInfo\":" + clientInfo + "}" +
                 "}";
     }
 
-    String makeResponseJSONForAuthenticate(String b64AuthenticatorData, String b64Signature, String b64SelectedCredentialUserHandle, String b64ClientDataJSON, String id, String clientInfo) {
+    String makeResponseJSONForAuthenticate(String b64AuthenticatorData, String b64Signature, String b64SelectedCredentialUserHandle, String b64ClientDataJSON, String id, String pushToken, String clientInfo) {
         return new StringBuilder().append("{\"response\":{\"authenticatorData\":\"").append(b64AuthenticatorData).append("\",")
                 .append("\"signature\":\"").append(b64Signature).append("\",")
                 .append("\"userHandle\":\"").append(b64SelectedCredentialUserHandle).append("\",")
@@ -679,9 +679,9 @@ public class AuthenticatorManager {
                 .append("\"id\":\"").append(id).append("\",")
                 .append("\"type\":\"public-key\"").append(",")
                 .append("\"ompass\":").append("{")
+                    .append("\"pushToken\":").append("\"").append(pushToken).append("\",")
                     .append("\"clientInfo\":").append(clientInfo)
-                .append("}")
-                .append("}").toString();
+                .append("}").append("}").toString();
     }
 
     //
@@ -689,7 +689,7 @@ public class AuthenticatorManager {
     //
     @RequiresApi(api = Build.VERSION_CODES.P)
     @Keep
-    public void tryRegister(String push_token, String username, String displayName, String authorization, String challenge, String userId, String clientInfo) {
+    public void tryRegister(String pushToken, String username, String displayName, String authorization, String challenge, String userId, String clientInfo) {
         String clientDataJSONData = getClientDataJosn(CREATE, challenge);
 
         MessageDigest digest = null;
@@ -768,7 +768,7 @@ public class AuthenticatorManager {
 
                     String b64ClientDataJSON = Base64.encodeToString(clientDataJSONData.getBytes(StandardCharsets.UTF_8), Base64.URL_SAFE | Base64.NO_WRAP);
 
-                    String jsonRegister = makeResponseJSONForRegister(cborB64, b64ClientDataJSON, userId, push_token, clientInfo);
+                    String jsonRegister = makeResponseJSONForRegister(cborB64, b64ClientDataJSON, userId, pushToken, clientInfo);
                     // System.out.println("Register Json : " + jsonRegister);
 
                     try (OutputStream os = conRegister[0].getOutputStream()) {

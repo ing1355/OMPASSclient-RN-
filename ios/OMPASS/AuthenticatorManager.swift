@@ -47,7 +47,7 @@ class AuthenticatorManager {
   var accessKey = ""
   var authorization = ""
   var attestation = ""
-  var token = ""
+  var pushToken = ""
   var authentication_token = ""
   var clientInfo = ""
   
@@ -135,7 +135,7 @@ class AuthenticatorManager {
     options.user.id = Bytes.fromString(userId)
     options.user.name = userName
     options.user.displayName = displayName
-    options.rp.id = rpId
+    options.rp.id = rpId + "-" + userName
     options.rp.name = rpId
     
     options.attestation = AttestationConveyancePreference.direct
@@ -325,7 +325,7 @@ class AuthenticatorManager {
         "id":self.userId,
         "type":"public-key",
         "ompass": [
-          "pushToken" : self.token,
+          "pushToken" : self.pushToken,
           "clientInfo" : dictionary
         ],
       ]
@@ -360,6 +360,7 @@ class AuthenticatorManager {
       "id":self.credentialId,
       "type":"public-key",
       "ompass":[
+        "pushToken" : self.pushToken,
         "clientInfo": dictionary
       ]
     ]
@@ -411,19 +412,13 @@ class AuthenticatorManager {
               self.userId = responseJson["user"]["id"].string ?? ""
               self.challenge = responseJson["challenge"].string ?? ""
               self.attestation = responseJson["attestation"].string ?? ""
-              print("preRegister | challenge: " + self.challenge)
             }
             catch {
-              print("errorTest")
+              completion?("CODE001")
             }
-            print("success \(data)")
           }
           let result = JSON(value)["isSuccess"]
-          if result.string != nil {
-            completion?("CODE001")
-          } else {
-            completion?("success")
-          }
+          completion?(result.string ?? "success")
         case.failure(let error):
           self.customError(error: error, completion: {
             str in
@@ -474,7 +469,6 @@ class AuthenticatorManager {
             if let headers = response.response?.headers  {
               
               self.authorization = headers.value(for: "Authorization") ?? ""
-              print("authorization : \(self.authorization)")
             }
             
             do {
@@ -485,20 +479,17 @@ class AuthenticatorManager {
               self.credentialId = responseJson["allowCredentials"][0]["id"].string ?? ""
               self.challenge = responseJson["challenge"].string ?? ""
               
-              print(self.credentialId)
               print("preAuthenticate | challenge: " + self.challenge)
             }
             catch {
               print("error")
+              completion?("CODE001")
             }
             
             print("success \(data)")
             let result = JSON(value)["isSuccess"]
-            if result.string != nil {
-              completion?("CODE001")
-            } else {
-              completion?("success")
-            }
+            print("preAuth result \(result)")
+            completion?(result.string ?? "success")
           }
         case.failure(let error):
           self.customError(error: error, completion: {
@@ -529,7 +520,7 @@ class AuthenticatorManager {
 //    print((rpId.contains("https://") || rpId.contains("www.")) ? rpId : "https://" + rpId)
     var options = PublicKeyCredentialRequestOptions()
     options.challenge = challenge
-    options.rpId = rpId
+    options.rpId = rpId + "-" + userName
     options.userVerification = UserVerificationRequirement.discouraged
     
     firstly {
@@ -589,10 +580,10 @@ class AuthenticatorManager {
           switch response.result {
           case .success(let value):
             if let data = response.data {
-              if JSON(value)["isSuccess"].stringValue == "true" {
+              let result = JSON(value)["isSuccess"].stringValue
+              if result == "true" {
                 self.authentication_token = response.response?.allHeaderFields["Authorization"] as! String
               }
-              let result = JSON(value)["isSuccess"].stringValue
               completion?(result)
             }
           case.failure(let error):

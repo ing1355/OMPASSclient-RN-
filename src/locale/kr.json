@@ -13,6 +13,7 @@
     "EXPIRE_PROCEDURE": "만료된 절차",
     "FAIL_VERIFY_SIGNATURE": "인증서 검증 실패",
     "FAIL_VERIFY_DATA": "등록 데이터 검증 오류",
+    "EXPIRED_SESSION": "세션 만료",
     "CODE001": "잘못된 데이터",
     "CODE002": "OMPASS 서버 통신 오류",
     "CODE003": "인터넷 연결 오류",
@@ -142,6 +143,8 @@
     "yes": "예",
     "no": "아니오",
     "deviceName": "기기 이름",
+    "confirmUserTitle": "%{type} 요청",
+    "confirmUserDescription": "본인이 맞습니까?",
     "newDeviceTitle": "신뢰할 수 있는 기기가 맞습니까?",
     "newDeviceDescription": "새로운 기기에서 로그인 되었습니다.",
     "qr_regist_text": "QR 코드를 스캔하여 인증장치 등록을 진행해 주세요.",
@@ -181,7 +184,7 @@
     "please_confirm_qr_code": "버튼을 터치하여\nOMPASS QR코드를 스캔해주세요.",
     "QRCodeText": "QR코드를 인식해서\n등록 또는 인증을 진행하세요",
     "SendFeedBack": "피드백 보내기",
-    "notificationTitle": "OMPASS 인증",
+    "notificationTitle": "%{applicationName}에서 OMPASS 인증 시도",
     "notificationBody": "%{username} 아이디로 로그인 요청",
     "registerInfoID": "아이디",
     "domain": "도메인",
@@ -192,5 +195,9 @@
     "LogsNumSetting": "로그 표시 개수",
     "LogsNumText": "%{num} 개",
     "NotificationSetting": "알림 설정",
-    "EmptyLogText": "로그 정보가 존재하지 않습니다"
+    "EmptyLogText": "로그 정보가 존재하지 않습니다",
+    "authFirstItemTitle": "서비스",
+    "authSecondItemTitle": "아이디",
+    "authThirdItemTitle": "IP",
+    "authFourthItemTitle": "위치"
 }

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { Text, View, Platform, Image } from 'react-native';
 import { connect } from 'react-redux';
 import { CustomNotification } from '../../Components/CustomAlert';
@@ -17,7 +17,7 @@ const Setting = ({ auth_all, changeCurrentAuth, route, loadingToggle, navigation
     const list_title = ['biometrics', 'pin', 'pattern'];
     const [iosType, setIosType] = useState('fingerprint');
     
-    const handleBackButton = () => {
+    const handleBackButton = useCallback(() => {
         if (!Authentications) return true;
         let count = 0;
         Object.keys(Authentications).map(key => {
@@ -25,7 +25,7 @@ const Setting = ({ auth_all, changeCurrentAuth, route, loadingToggle, navigation
         })
         if (count < 2) return true;
         return false;
-    }
+    },[])
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('focus', async () => {
@@ -34,9 +34,13 @@ const Setting = ({ auth_all, changeCurrentAuth, route, loadingToggle, navigation
             loadingToggle(false);
         });
 
+        const subscribe = navigation.addListener('blur', async () => {
+            if (Platform.OS === 'android') BackHandler.removeEventListener('hardwareBackPress',handleBackButton)
+        });
+
         return () => {
-            BackHandler.removeEventListener('hardwareBackPress',handleBackButton)
             unsubscribe()
+            subscribe()
         }
     }, [navigation])
 

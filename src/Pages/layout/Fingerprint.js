@@ -27,6 +27,7 @@ const Fingerprint = (props) => {
         });
 
         const subscribe = props.navigation.addListener('blur', async () => {
+            if(props.route.params && props.route.params.cancelCallback) props.route.params.cancelCallback()
             Init_Error();
         });
 
@@ -40,7 +41,6 @@ const Fingerprint = (props) => {
         const { text, callback } = props.route.params;
         if (text === 'local_Authenticate' || text === 'first_regist') {
             callback();
-            if(text === 'first_regist') props.navigation.replace('Setting');
         } else {
             const params = {
                 callback: () => {
@@ -81,7 +81,6 @@ const Fingerprint = (props) => {
         const { Biometrics, LocalAuth } = NativeModules.webAuthn;
         const { text, pass } = props.route.params;
         Biometrics(translate('Tryfingerprint'), text, async (cal) => {
-            console.log(cal);
             switch (cal) {
                 case 'success':
                     return TouchIDSuccessFunc();
@@ -111,7 +110,7 @@ const Fingerprint = (props) => {
                     if (text !== 'first_regist') setChangedModalOpen(true);
                     break;
                 default:
-                    console.log('default');
+                    break;
             }
         })
     }

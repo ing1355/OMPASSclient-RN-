@@ -6,11 +6,7 @@
 	<string>development</string>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:*.ompass.kr</string>
-		<string>applinks:*.ompasscloud.com</string>
-		<string>applinks:ompass.kr</string>
-		<string>applinks:ompasscloud.com</string>
-		<string>applinks:ompass</string>
+		<string>applinks:www.ompass.kr</string>
 	</array>
 </dict>
 </plist>

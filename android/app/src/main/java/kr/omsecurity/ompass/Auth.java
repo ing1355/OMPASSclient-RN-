@@ -77,12 +77,12 @@ public class Auth extends ReactContextBaseJavaModule {
     @RequiresApi(api = Build.VERSION_CODES.P)
     @ReactMethod
     public void Register(String fidoAddress, String domain, String accessKey, String username, String clientInfo,
-                         String displayName, String push_token, String authorization, String challenge, String userId,
+                         String displayName, String pushToken, String authorization, String challenge, String userId,
                          Callback errorCallback, Callback successCallback) {
 //        HttpsTrustManager.allowAllSSL();
         err_msg = null;
         AuthenticatorManager authenticatorManager = new AuthenticatorManager(reactContext, fidoAddress, domain, accessKey, username);
-        authenticatorManager.tryRegister(push_token, username, displayName, authorization, challenge, userId, clientInfo);
+        authenticatorManager.tryRegister(pushToken, username, displayName, authorization, challenge, userId, clientInfo);
         if (err_msg == null) {
             successCallback.invoke("Register success!");
         } else {
@@ -108,13 +108,13 @@ public class Auth extends ReactContextBaseJavaModule {
 
     @RequiresApi(api = Build.VERSION_CODES.P)
     @ReactMethod
-    public void Authenticate(String fidoAddress, String domain, String accessKey, String username,
+    public void Authenticate(String pushToken, String fidoAddress, String domain, String accessKey, String username,
                              String authorization, String challenge, String userId, String clientInfo,
                              Callback errorCallback, Callback successCallback) {
 //        HttpsTrustManager.allowAllSSL();
         err_msg = null;
         AuthenticatorManager authenticatorManager = new AuthenticatorManager(reactContext, fidoAddress, domain, accessKey, username);
-        authenticatorManager.tryAuthenticate(username, authorization, challenge, userId, clientInfo);
+        authenticatorManager.tryAuthenticate(username, authorization, challenge, userId, pushToken, clientInfo);
         if (err_msg == null) {
             successCallback.invoke(authenticateToken);
         } else {

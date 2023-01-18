@@ -1,5 +1,5 @@
-import React, { useLayoutEffect, useState } from 'react';
-import { Modal, Pressable, Text, View, KeyboardAvoidingView, Image, Platform } from 'react-native';
+import React, { useLayoutEffect, useEffect, useState, useCallback } from 'react';
+import { Modal, Pressable, Text, View, KeyboardAvoidingView, Image, Platform, BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
 import { translate } from '../../../App';
 import { Auth_Count } from '../../Function/Auth_Count';
@@ -15,7 +15,7 @@ export const Menu_First_Item = ({ modalOpen, setModalOpen }) => {
   const { Authentications } = useSelector((state) => ({
     Authentications: state.Authentications,
   }));
-  
+
   const getIosType = async () => {
     setIosType(await AsyncStorage.getItem(AsyncStorageIosTypeKey));
   };
@@ -23,9 +23,11 @@ export const Menu_First_Item = ({ modalOpen, setModalOpen }) => {
   useLayoutEffect(() => {
     getIosType();
   }, []);
-  
+
   return (
-    <Modal visible={modalOpen} animationType="fade" transparent>
+    <Modal visible={modalOpen} animationType="fade" transparent onRequestClose={() => {
+      setModalOpen(false)
+    }}>
       <KeyboardAvoidingView
         style={{
           flex: 1,
@@ -39,13 +41,13 @@ export const Menu_First_Item = ({ modalOpen, setModalOpen }) => {
         <View
           style={[
             styles.setting_modal,
-            { height: 80 + (AuthTypeHeight * Auth_Count(Authentications))},
+            { height: 80 + (AuthTypeHeight * Auth_Count(Authentications)) },
           ]}>
           <View style={styles.modal_title}>
             <Text style={styles.modal_title_text}>
               {translate('otherAuthSelect')}
             </Text>
-            <CustomButton style={{width: 60, height: 60, alignItems: 'center', justifyContent: 'center'}} onPress={() => {
+            <CustomButton style={{ width: 60, height: 60, alignItems: 'center', justifyContent: 'center' }} onPress={() => {
               setModalOpen(false)
             }}>
               <Image style={{
@@ -61,7 +63,7 @@ export const Menu_First_Item = ({ modalOpen, setModalOpen }) => {
           />
         </View>
         {
-          Platform.OS === 'ios' && <View style={{height: 20, backgroundColor:'white'}}/>
+          Platform.OS === 'ios' && <View style={{ height: 20, backgroundColor: 'white' }} />
         }
       </KeyboardAvoidingView>
     </Modal>

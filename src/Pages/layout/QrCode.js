@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, Image, Animated } from 'react-native';
+import { View, Text, Pressable, Image, Animated, Vibration } from 'react-native';
 import styles from '../../styles/QrCode';
 import { connect } from 'react-redux';
 import ActionCreators from '../../global_store/actions';
@@ -11,9 +11,30 @@ import { getDataByNonce } from '../../Function/GlobalFunction';
 
 const animationTime = 3000
 
+function isJson(str) {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
+}
+
+const initQrData = {
+  clientInfo: {
+    browser: '',
+    gpu: '',
+    os: '',
+    osVersion: '',
+    name: '',
+    ip: '',
+    location: ''
+  }
+}
+
 const QrCode = (props) => {
   const [execute, setExecute] = useState(false);
-  const [qr_result, setQr_result] = useState(null);
+  const [qr_result, setQr_result] = useState(initQrData)
   const [isFocused, setIsFocused] = useState(false);
   const [textView, setTextView] = useState(true)
   const qrAnimation = useRef(new Animated.Value(1)).current
@@ -45,15 +66,6 @@ const QrCode = (props) => {
     };
   }, [props.navigation]);
 
-  function isJson(str) {
-    try {
-      JSON.parse(str);
-    } catch (e) {
-      return false;
-    }
-    return true;
-  }
-
   async function onSuccess(e) {
     if (!scanRef.current) {
       scanRef.current = true;
@@ -64,16 +76,20 @@ const QrCode = (props) => {
           scanRef.current = false;
           return;
         } else {
+          props.loadingToggle(true);
           getDataByNonce(url, param, userId, (result) => {
-            props.loadingToggle(true);
             setQr_result(result);
-            setTimeout(() => {
-              props.loadingToggle(false);
-              setExecute(true)
-            }, 100);
+            props.loadingToggle(false);
+            setExecute(true)
           }, err => {
+            console.log(err)
             scanRef.current = false;
             props.loadingToggle(false);
+            Vibration.vibrate()
+            RootNavigation.navigate('Auth_Fail', {
+              type: url.includes('auth') ? 'OMPASSAuth' : 'OMPASSRegist',
+              reason: translate('CODE002'),
+            });
           })
         }
       } else {
@@ -85,10 +101,17 @@ const QrCode = (props) => {
   return (
     <>
       <FidoAuthentication
-        authData={qr_result}
-        setAuthData={setQr_result}
+        tempAuthData={qr_result}
         execute={execute}
         setExecute={setExecute}
+        isQR={true}
+        initCallback={() => {
+          setQr_result(initQrData)
+        }}
+        modalCloseCallback={() => {
+          scanRef.current = false
+          setExecute(false)
+        }}
       />
       <View style={styles.container}>
         <View
@@ -142,7 +165,7 @@ const QrCode = (props) => {
         </View>
         {isFocused && (
           <View style={{ position: 'absolute', zIndex: 1, width: '100%', height: '100%' }}>
-            <CameraScreen onReadCode={onSuccess} scanBarcode ratioOverlay="1:1" hideControls={true} />
+            <CameraScreen onReadCode={onSuccess} scanBarcode ratioOverlay="1:1" hideControls={true}/>
           </View>
         )}
       </View>

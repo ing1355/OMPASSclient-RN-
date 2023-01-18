@@ -8,7 +8,6 @@ const styles = StyleSheet.create({
         backgroundColor: 'black',
     },
     modal_container: {
-        flex: 1,
         position:'absolute',
         width: Dimensions.get('window').width,
         height:Dimensions.get('window').height,
@@ -25,7 +24,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden'
     },
     modal_title_container: {
-        flex: 1,
+        height: 65,
         flexDirection: 'column',
         alignItems:'center',
         justifyContent: 'center',
@@ -44,28 +43,10 @@ const styles = StyleSheet.create({
         textAlignVertical: 'center',
         fontWeight: 'bold'
     },
-    centeredView: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        marginTop: 22
-    },
     modal_content_text_container: {
-        flex: 1,
+        minHeight: 120,
         flexDirection: 'column',
-        justifyContent: 'center',
-    },
-    modal_content_text: {
-        color: 'black',
-        flex: 0.5
-    },
-    modal_content_colon: {
-        color: 'gray',
-        flex: 0.1
-    },
-    modal_content_value: {
-        color: 'gray',
-        flex: 1
+        justifyContent: 'center'
     },
     cancel_container: {
         flex: 1,
@@ -78,7 +59,7 @@ const styles = StyleSheet.create({
         textAlign: 'center', 
         textAlignVertical: 'center', 
         color: '#ffffff', 
-        fontSize: RFPercentage(2), 
+        fontSize: RFPercentage(2.2), 
         fontFamily: NotoSansRegular, 
         letterSpacing: -1,
     },
@@ -93,7 +74,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         textAlignVertical: 'center',
         color: 'white',
-        fontSize: RFPercentage(2),
+        fontSize: RFPercentage(2.2),
         fontFamily: NotoSansRegular,
         letterSpacing: -1,
     }

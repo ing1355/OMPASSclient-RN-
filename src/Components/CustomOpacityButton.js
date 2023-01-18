@@ -34,24 +34,10 @@ const CustomOpacityButton = ({ style, onPress, children, disabled }) => {
 
     const onPressIn = () => {
         pressInAnimation.start()
-        // clicked.current = true
-        // pressInAnimation.start(({ finished }) => {
-        //     console.log('finish : ', finished, clicked.current)
-        //     if(finished) animationFinished.current = finished
-        //     if(!clicked.current) pressOutAnimation.start()
-        //     else {
-        //         pressOutAnimation.start()
-        //     }
-        // });
     }
 
     const onPressOut = () => {
         pressOutAnimation.start()
-        // clicked.current = false
-        // if(animationFinished.current) {
-        //     pressOutAnimation.start()
-        //     animationFinished.current = false
-        // }
     }
 
     return <Pressable style={[{

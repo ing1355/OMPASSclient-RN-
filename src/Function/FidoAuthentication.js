@@ -1,28 +1,128 @@
 import Authenticate from '../Auth/Authenticate';
 import webAuthn from '../Auth/webAuthn';
 import * as navigation from '../Route/Router';
-import { Platform, Text, Vibration } from 'react-native';
+import { BackHandler, Platform, Text, Vibration, View } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
-import React, { useLayoutEffect, useRef, useState } from 'react'
-import { connect } from 'react-redux';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { connect, useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isAuthenticateCheckedToggle, translate } from '../../App';
-import { onCancelNewDevice } from './onCancelNewDevice';
 import { CustomConfirmModal } from '../Components/CustomAlert';
 import { GetClientInfo } from './GetClientInfo';
-import { AsyncStorageCurrentAuthKey, AsyncStorageFcmTokenKey, AsyncStoragePushDataKey } from '../Constans/ContstantValues';
+import { AsyncStorageAuthenticationsKey, AsyncStorageCurrentAuthKey, AsyncStorageFcmTokenKey, AsyncStoragePushDataKey } from '../Constans/ContstantValues';
 import { saveAuthLogByResult } from './GlobalFunction';
 import notifee from '@notifee/react-native'
 import RegisterAuthentication from '../Auth/RegisterAuthentication';
 import ActionCreators from '../global_store/actions';
+import * as RNLocalize from 'react-native-localize';
+import { changeNotificationToggle } from '../global_store/actions/Notification';
 
-const FidoAuthentication = ({ authData, isForgery, isRoot, usbConnected, needUpdate, execute, setExecute, loadingToggle, currentAuth }) => {
-  const { domain, did, redirectUri, username, accessKey, fidoAddress, clientInfo, displayName, procedure } = authData || {};
+const isKr = RNLocalize.getLocales()[0].languageCode === 'ko'
+
+const RightMsg = (title, description) => {
+  return <View style={{ flexDirection: 'row', marginBottom: 2.5 }}>
+    <Text style={{ flex: isKr ? 0.5 : .75, top: 1 }}>{translate(title)} </Text>
+    <Text style={{ flex: 2, textAlign: 'left' }} numberOfLines={2} ellipsizeMode="tail">
+      {description}
+    </Text>
+  </View>
+}
+
+const initAuthData = {
+  domain: '',
+  did: 0,
+  redirectUri: '',
+  username: '',
+  accessKey: '',
+  fidoAddress: '',
+  clientInfo: {
+    browser: '',
+    gpu: '',
+    os: '',
+    osVersion: '',
+    name: '',
+    ip: '',
+    location: ''
+  },
+  displayName: '',
+  procedure: '',
+  applicationName: ''
+}
+
+const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnected, needUpdate, execute, setExecute, loadingToggle, currentAuth, modalCloseCallback, initCallback }) => {
+  const [authData, setAuthData] = useState(initAuthData)
+  const { domain, did, redirectUri, username, accessKey, fidoAddress, clientInfo, displayName, procedure, applicationName } = authData;
+  const { notificationToggle, appSettings } = useSelector(state => ({
+    notificationToggle: state.notificationToggle,
+    appSettings: state.appSettings
+  }))
   const [modalOpen, setModalOpen] = useState(false);
-  const callbackRef = useRef(null);
+  const dispatch = useDispatch()
+
+  const cancelInitFunction = () => {
+    setAuthData(initAuthData)
+  }
+
+  async function check_auth_info() {
+    const auth_info = await AsyncStorage.getItem(AsyncStorageAuthenticationsKey);
+    if (auth_info) {
+      const auth_data = JSON.parse(auth_info);
+      let count = 0;
+      Object.keys(auth_data).map((key) => {
+        if (auth_data[key]) count++;
+      });
+      if (count < 2) {
+        return false
+      }
+      return true
+    } else {
+      return false
+    }
+  }
+
+  const RouteFiltering = () => {
+    const routeState = navigation.navigationRef.current.getState()
+    if (!routeState) return;
+    const routeInfo = routeState.routes
+    if (routeInfo.find(route => route.name === 'Auth_Complete' || route.name === 'Auth_Fail') || isQR) {
+      const filteredRoute = routeInfo.filter(route => route.name !== 'Auth_Complete' && route.name !== 'Auth_Fail' && route.name !== 'QrCode')
+      navigation.navigationRef.current.reset({
+        index: filteredRoute.length - 1,
+        routes: filteredRoute
+      })
+    }
+  }
+
+  const AuthCompleteCallback = (type) => {
+    const callback = () => {
+      if (!appSettings.exitAfterAuth && clientInfo.browser.includes('Mobile')) {
+        BackHandler.exitApp()
+      }
+    }
+    RouteFiltering()
+    if (type === 'OMPASSRegist') {
+      navigation.replace('Auth_Complete', { type: "OMPASSRegist", callback });
+    } else {
+      navigation.replace('Auth_Complete', { type: "OMPASSAuth", callback });
+    }
+  }
+
+  const AuthErrorCallback = (type, err, navigate) => {
+    RouteFiltering()
+    if (navigate) {
+      navigation.navigate('Auth_Fail', {
+        type,
+        reason: err,
+      });
+    } else {
+      navigation.replace('Auth_Fail', {
+        type,
+        reason: err,
+      });
+    }
+  }
 
   const callbackFunc = async (isSameDevice) => {
-    Vibration.vibrate();
     if (procedure === 'reg') {
       webAuthn.PreRegister(
         fidoAddress,
@@ -37,10 +137,7 @@ const FidoAuthentication = ({ authData, isForgery, isRoot, usbConnected, needUpd
           loadingToggle(false);
           saveAuthLogByResult('reg', false, authData)
           setTimeout(() => {
-            navigation.replace('Auth_Fail', {
-              type: 'OMPASSRegist',
-              reason: err,
-            });
+            AuthErrorCallback('OMPASSRegist', err, true)
           }, 10);
         },
         (suc) => {
@@ -62,150 +159,162 @@ const FidoAuthentication = ({ authData, isForgery, isRoot, usbConnected, needUpd
               function (err) {
                 console.log('register err ? : ', err);
                 saveAuthLogByResult('reg', false, authData)
-                navigation.replace('Auth_Fail', {
-                  type: 'OMPASSRegist',
-                  reason: err,
-                });
+                AuthErrorCallback('OMPASSRegist', err)
               },
               async (msg) => {
-                console.log('msg : ', msg);
                 loadingToggle(false);
-                console.log(2)
                 saveAuthLogByResult('reg', true, authData)
-                console.log(3)
                 setTimeout(() => {
-                  console.log(4)
-                  navigation.replace('Auth_Complete', 'OMPASSRegist');
+                  AuthCompleteCallback('OMPASSRegist')
                 }, 10);
               },
             );
           };
-          console.log(currentAuth)
-          return RegisterAuthentication(currentAuth, Register_Callback);
+          return RegisterAuthentication(currentAuth, Register_Callback, cancelInitFunction, isQR);
         },
       );
     } else {
-      if (Platform.OS === 'ios') {
-        await notifee.setBadgeCount(0)
-      }
       const currentAuth = await AsyncStorage.getItem(AsyncStorageCurrentAuthKey);
       webAuthn.PreAuthenticate(fidoAddress, domain, accessKey, redirectUri, Number(did), username, (err) => {
         console.log('pre authenticate err ? : ', err);
         saveAuthLogByResult('auth', false, authData);
-        navigation.replace("Auth_Fail", { type: "OMPASSAuth", reason: err });
+        AuthErrorCallback("OMPASSAuth", err, true)
       }, (msg) => {
         const { authorization, challenge, userId } = Platform.OS === 'android' ? JSON.parse(msg) : msg;
         const Auth_Callback = async () => {
-          webAuthn.Authenticate(fidoAddress, domain, accessKey, username, authorization, challenge, userId, await GetClientInfo(), (err) => {
+          webAuthn.Authenticate(await AsyncStorage.getItem(AsyncStorageFcmTokenKey), fidoAddress, domain, accessKey, username, authorization, challenge, userId, await GetClientInfo(), (err) => {
             console.log('authenticate err ? : ', err);
             saveAuthLogByResult('auth', false, authData);
-            navigation.replace("Auth_Fail", { type: "OMPASSAuth", reason: err });
+            AuthErrorCallback("OMPASSAuth", err)
           }, (msg) => {
             if (isSameDevice === 'false') {
-              RNFetchBlob.config({ trusty: true }).fetch(
-                'POST',
-                'https://' + fidoAddress + `/client-info/save/did/${did}/username/${username}`,
-                {
-                  'Content-Type': 'application/json',
-                  'Authorization': msg
-                },
-                JSON.stringify({
-                  ...clientInfo
-                }),
-              )
-                .then(async (resp) => {
-                  console.log(resp)
-                  saveAuthLogByResult('auth', true, authData);
-                  setTimeout(() => {
-                    setExecute(false);
-                    navigation.replace('Auth_Complete', "OMPASSAuth");
-                  }, 100);
-                })
-                .catch((err) => {
-                  console.log(err);
-                });
+              // RNFetchBlob.config({ trusty: true }).fetch(
+              //   'POST',
+              //   'https://' + fidoAddress + `/client-info/save/did/${did}/username/${username}`,
+              //   {
+              //     'Content-Type': 'application/json',
+              //     'Authorization': msg
+              //   },
+              //   JSON.stringify({
+              //     ...clientInfo
+              //   }),
+              // )
+              //   .then(async (resp) => {
+              //     console.log(resp)
+              //     saveAuthLogByResult('auth', true, authData);
+              //     setTimeout(() => {
+              //       setExecute(false);
+              //       navigation.replace('Auth_Complete', "OMPASSAuth");
+              //     }, 100);
+              //   })
+              //   .catch((err) => {
+              //     console.log(err);
+              //   });
             } else {
               saveAuthLogByResult('auth', true, authData);
               setTimeout(() => {
-                setExecute(false);
-                navigation.replace('Auth_Complete', "OMPASSAuth");
+                // setExecute(false);
+                AuthCompleteCallback('OMPASSAuth')
               }, 100);
             }
           });
         }
-        return Authenticate(currentAuth, Auth_Callback);
+        return Authenticate(currentAuth, Auth_Callback, cancelInitFunction, isQR);
       })
     }
   }
 
   useLayoutEffect(() => {
     if (isForgery.isChecked && isRoot.isChecked && usbConnected.isChecked && needUpdate.isChecked && !(isForgery.isForgery || isRoot.isRoot || usbConnected.usbConnected || needUpdate.needUpdate)) {
-      if (execute) {
-        if (procedure === 'reg') {
-          callbackFunc()
-        } else {
-          const preFunc = async () => {
-            await AsyncStorage.removeItem(AsyncStoragePushDataKey)
-            isAuthenticateCheckedToggle(false)
-          }
-          preFunc()
-          RNFetchBlob.config({ trusty: true }).fetch(
-            'POST',
-            'https://' + fidoAddress + `/client-info/verify/did/${did}/username/${username}`,
-            { 'Content-Type': 'application/json' },
-            JSON.stringify({
-              ...clientInfo
-            }),
-          )
-            .then(async (resp) => {
-              if (resp.data === 'false') {
-                setModalOpen(true);
-                callbackRef.current = () => {
-                  callbackFunc(resp.data);
-                }
+      const withAuthCheck = async () => {
+        if (execute && await check_auth_info()) {
+          // if (execute && true) {
+          if (notificationToggle) dispatch(changeNotificationToggle(false))
+          if(accessKey !== tempAuthData.accessKey) {
+            setTimeout(() => {
+              if (modalOpen) {
+                setModalOpen(false)
+                setTimeout(() => {
+                  setModalOpen(true)
+                }, 100);
               } else {
-                callbackFunc(resp.data);
+                setModalOpen(true);
               }
-            })
-            .catch((err) => {
-              console.log(err);
-            });
+            }, 150);
+          }
+          if (procedure === 'auth') {
+            const preFunc = async () => {
+              await notifee.setBadgeCount(0)
+              await AsyncStorage.removeItem(AsyncStoragePushDataKey)
+              isAuthenticateCheckedToggle(false)
+            }
+            preFunc()
+          } else {
+            // RNFetchBlob.config({ trusty: true }).fetch(
+            //   'POST',
+            //   'https://' + fidoAddress + `/client-info/verify/did/${did}/username/${username}`,
+            //   { 'Content-Type': 'application/json' },
+            //   JSON.stringify({
+            //     ...clientInfo
+            //   }),
+            // )
+            //   .then(async (resp) => {
+            //     if (resp.data === 'false') {
+            //       setModalOpen(true);
+            //       callbackRef.current = () => {
+            //         callbackFunc(resp.data);
+            //       }
+            //     } else {
+            //       callbackFunc(resp.data);
+            //     }
+            //   })
+            //   .catch((err) => {
+            //     console.log(err);
+            //   });
+          }
         }
+        setExecute(false)
       }
+      withAuthCheck()
     }
   }, [isForgery, isRoot, usbConnected, needUpdate, authData, execute])
 
+  useEffect(() => {
+    if (authData.accessKey) {
+      callbackFunc();
+    }
+  }, [authData])
+
   return <CustomConfirmModal
-    title={translate('newDeviceTitle')}
+    title={translate('confirmUserTitle', { type: procedure === 'reg' ? (isKr ? '등록' : 'Registration') : (isKr ? '인증' : 'Authentication') })}
+    onShow={async () => {
+      await notifee.cancelAllNotifications()
+      Vibration.vibrate();
+    }}
     yesOrNo
     msg={
       <>
-        <Text style={{ textAlign: 'center' }}>
-          {translate('newDeviceDescription') + '\n'}
-        </Text>
-        <Text numberOfLines={1} ellipsizeMode="tail">
-          GPU : {clientInfo ? clientInfo.gpu : null}
-        </Text>
-        <Text numberOfLines={1} ellipsizeMode="tail">
-          OS : {clientInfo ? clientInfo.os : null}
-        </Text>
-        <Text numberOfLines={1} ellipsizeMode="tail">
-          OS Version : {clientInfo ? clientInfo.osVersion : null}
-        </Text>
-        <Text numberOfLines={1} ellipsizeMode="tail">
-          Browser : {clientInfo ? clientInfo.browser : null}
+        {RightMsg('authFirstItemTitle', tempAuthData.applicationName)}
+        {RightMsg('authSecondItemTitle', tempAuthData.username)}
+        {RightMsg('authThirdItemTitle', tempAuthData.clientInfo.ip)}
+        {RightMsg('authFourthItemTitle', tempAuthData.clientInfo.location)}
+        <Text style={{ textAlign: 'center', marginTop: 8 }}>
+          {translate('confirmUserDescription') + '\n'}
         </Text>
       </>
     }
     modalOpen={modalOpen}
     modalClose={() => {
+      if (modalCloseCallback) modalCloseCallback()
       setModalOpen(false);
     }}
     cancelCallback={() => {
-      onCancelNewDevice({ username, did, fidoAddress });
+      if(initCallback) initCallback()
+      // onCancelNewDevice({ username, did, fidoAddress });
     }}
     callback={() => {
-      if (callbackRef.current) callbackRef.current();
+      if(initCallback) initCallback()
+      setAuthData(tempAuthData)
     }} />
 }
 

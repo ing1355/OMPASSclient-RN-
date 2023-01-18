@@ -15,7 +15,6 @@ import messaging from '@react-native-firebase/messaging'
 import notifee from '@notifee/react-native'
 
 messaging().setBackgroundMessageHandler(async (message) => {
-  console.log("fcm background : ",message)
   if (message) {
     displayNotification(message);
   }
@@ -23,12 +22,10 @@ messaging().setBackgroundMessageHandler(async (message) => {
 
 notifee.onBackgroundEvent(async ({ type, detail }) => {
   const { notification, pressAction } = detail;
-  console.log('background : ', type, detail)
   await AsyncStorage.setItem(AsyncStoragePushDataKey, notification.data.data)
 });
 
 const HeadlessCheck = ({ isHeadless }) => {
-  console.log('headless : ',isHeadless)
   if (isHeadless) {
     return null;
   }

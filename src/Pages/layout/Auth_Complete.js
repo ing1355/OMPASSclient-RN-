@@ -7,6 +7,7 @@ import { NotoSansRegular } from '../../env';
 import styles from '../../styles/layout/Auth_Complete';
 import { loadingToggle } from '../../global_store/actions/loadingToggle';
 import CustomOpacityButton from '../../Components/CustomOpacityButton';
+import * as RootNavigation from '../../Route/Router'
 
 let timerId = 0
 const clearTime = 1
@@ -34,10 +35,10 @@ const Auth_Complete = (props) => {
     const [text, setText] = useState('Regist');
     const animation = useRef(new Animated.Value(0)).current;
     const overlayAnimation = useRef(new Animated.Value(0)).current;
-
+    
     useEffect(() => {
         const unsubscribe = props.navigation.addListener('focus', () => {
-            setText(props.route.params);
+            setText(props.route.params.type);
             setTimeout(() => {
                 _loadingToggle(false);
             }, 10);
@@ -53,16 +54,14 @@ const Auth_Complete = (props) => {
                     toValue: 1,
                     duration: animationDuration,
                     useNativeDriver: true,
-                }).start()
+                }).start(() => {
+                    if(props.route.params.callback) props.route.params.callback()
+                })
             })
-            if(Platform.OS === 'android' && exitAfterAuth && !props.route.params.includes('Regist')) {
+            if(Platform.OS === 'android' && exitAfterAuth && !props.route.params.type.includes('Regist')) {
                 setTimeout(() => {
-                    // clearInterval(timerId)
                     NativeModules.CustomSystem.ExitApp()
                 }, clearTime * 1000 + animationDuration);
-                // timerId = setInterval(() => {
-                //     setTimerValue(timer => timer - 1)
-                // }, 1000);
             }
         });
 
@@ -104,20 +103,18 @@ const Auth_Complete = (props) => {
                 <Text style={[styles.auth_text]}>
                     {text.includes("Regist") ? translate('completeOMPASSRegist') : translate('completeOMPASSAuth')}
                 </Text>
-                {/* {(exitAfterAuth && !props.route.params.includes("Regist")) && <Text style={styles.auth_sub_text}>
-                    {timerValue}초 뒤에 자동으로 종료됩니다.
-                </Text>} */}
             </View>
-            {(Platform.OS === 'ios' || !exitAfterAuth || props.route.params.includes("Regist")) ? <View style={{ height: 80, flexDirection: 'column', justifyContent: 'flex-end' }}>
+            {(Platform.OS === 'ios' || !exitAfterAuth || props.route.params.type.includes("Regist")) ? <View style={{ height: 80, flexDirection: 'column', justifyContent: 'flex-end' }}>
                 <CustomOpacityButton style={{ height: '100%', backgroundColor: '#3571d6', flexDirection: 'column', justifyContent: 'center' }} onPress={() => {
-                    props.navigation.reset({ index: 0, routes: [{ name: 'HOME' }] });
+                    const stateInfo = props.navigation.getState()
+                    if(!stateInfo || stateInfo.routes.length === 1) RootNavigation.reset()
+                     else props.navigation.goBack();
                 }}>
                     <Text style={{ textAlign: 'center', fontFamily: NotoSansRegular, fontSize: RFPercentage(2.5), color: '#ffffff' }}>
                         {translate('OK')}
                     </Text>
                 </CustomOpacityButton>
             </View> : <View style={{flex: 0.2}}/>}
-        {/* </ImageBackground> */}
         </>
     )
 }

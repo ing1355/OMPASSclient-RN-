@@ -3,12 +3,14 @@ import * as RootNavigation from '../Route/Router';
 const Fingerprint = (props) => {
     if (props.type && props.callback) {
         const params = {
+            cancelCallback: props.cancelCallback,
             callback: () => {
                 props.callback();
             },
             text: props.type
         };
-        RootNavigation.replace('Fingerprint', params)
+        // if(props.type === '등록') RootNavigation.replace('Fingerprint', params)
+        RootNavigation.navigate('Fingerprint', params)
     } else if (props.callback) {
         const params = {
             callback: () => {
@@ -16,7 +18,7 @@ const Fingerprint = (props) => {
             },
             text: 'first_regist'
         }
-        RootNavigation.replace('Fingerprint', params)
+        RootNavigation.navigate('Fingerprint', params)
     } else if (props.AuthenticateCallback) {
         const params = {
             callback: () => {
@@ -24,7 +26,7 @@ const Fingerprint = (props) => {
             },
             text: 'local_Authenticate'
         }
-        RootNavigation.replace('Fingerprint', params)
+        RootNavigation.navigate('Fingerprint', params)
     }
 }
 

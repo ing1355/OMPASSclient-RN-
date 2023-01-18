@@ -19,9 +19,7 @@ export const getCurrentFullDateTime = () => {
 }
 
 export const saveAuthLogByResult = async (type, result, authData) => {
-    console.log('here??')
     let logs = JSON.parse(await AsyncStorage.getItem(AsyncStorageLogKey))
-    console.log(logs)
     let logsNum = JSON.parse(await AsyncStorage.getItem(AsyncStorageAppSettingKey)).logsNum
     const { domain, username, clientInfo } = authData || {};
     const { browser, gpu, os, osVersion } = clientInfo
@@ -63,7 +61,7 @@ export const saveAuthLogByResult = async (type, result, authData) => {
                                             createdAt: getCurrentFullDateTime(),
                                             result,
                                             type
-                                        }, ...data.logs.slice(0,logsNum - 1)
+                                        }, ...data.logs.slice(0, logsNum - 1)
                                     ]
                                 }
                             } else {
@@ -94,34 +92,43 @@ export const saveAuthLogByResult = async (type, result, authData) => {
             }
         })
     }
-    
+
     await AsyncStorage.setItem(AsyncStorageLogKey, JSON.stringify(logs))
 }
 
 export const getDataByNonce = (url, nonce, userId, successCallback, errorCallback) => {
     RNFetchBlob.config({
         trusty: true,
-      })
+    })
         .fetch(
-          'POST',
-          url,
-          {
-            'Content-Type': 'application/json',
-          },
-          JSON.stringify(userId ? {
-            nonce,
-            userId
-          } : {
-              nonce
-            }),
+            'POST',
+            url,
+            {
+                'Content-Type': 'application/json',
+            },
+            JSON.stringify(userId ? {
+                nonce,
+                userId
+            } : {
+                    nonce
+                }),
         )
         .then(async (resp) => {
-          const { data } = resp;
-          const result = JSON.parse(data);
-          if(successCallback) successCallback(result)
+            const { data } = resp;
+            if (successCallback) {
+                try {
+                    const _data = JSON.parse(data)
+                    if(_data.error) {
+                        if (errorCallback) errorCallback(_data.error)
+                    } else {
+                        successCallback(_data)
+                    }
+                } catch (e) {
+                    if (errorCallback) errorCallback(data)
+                }
+            }
         })
         .catch((err) => {
-          console.log(err);
-          if(errorCallback) errorCallback(err)
+            if (errorCallback) errorCallback(err.message)
         });
 }

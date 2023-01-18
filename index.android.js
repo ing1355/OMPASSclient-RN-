@@ -15,7 +15,7 @@ import { AsyncStoragePushDataKey } from './src/Constans/ContstantValues';
 import notifee from '@notifee/react-native'
 
 messaging().setBackgroundMessageHandler(async (message) => {
-  console.log("fcm background : ",message)
+  console.log('Back Fcm : ', message)
   if (message) {
     displayNotification(message);
   }
@@ -23,7 +23,6 @@ messaging().setBackgroundMessageHandler(async (message) => {
 
 notifee.onBackgroundEvent(async ({ type, detail }) => {
   const { notification, pressAction } = detail;
-  console.log('background : ', type, detail)
   await AsyncStorage.setItem(AsyncStoragePushDataKey, notification.data.data)
 });
 

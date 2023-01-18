@@ -87,28 +87,31 @@ const Logs = (props) => {
                     fontWeight: 'bold',
                     letterSpacing: -1
                 }} />
-            {list_data.length > 0 ? <ScrollView style={styles.container}>
-                {
-                    list_data.map(data =>
-                        <LogItem data={data} key={data.domain} />
-                    )
-                }
-            </ScrollView> : <>
-                    <View style={[styles.container, {
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                    }]}>
-                        <Image source={require('../../../assets/emptyLogIcon.png')} style={{
-                            width: 80,
-                            height: 80,
-                            marginBottom: 30
-                        }} />
-                        <Text style={styles.empty_text}>
-                            {translate('EmptyLogText')}
-                        </Text>
-                    </View>
-                    <View style={{ flex: 0.5 , backgroundColor:'white'}} />
-                </>}
+            <View style={{ flex: 1, paddingHorizontal: '5%', backgroundColor: 'white', paddingVertical: 15 }}>
+                {list_data.length > 0 ?
+                    <ScrollView style={styles.container}>
+                        {
+                            list_data.map(data =>
+                                <LogItem data={data} key={data.domain} />
+                            )
+                        }
+                    </ScrollView> : <>
+                        <View style={[styles.container, {
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }]}>
+                            <Image source={require('../../../assets/emptyLogIcon.png')} style={{
+                                width: 80,
+                                height: 80,
+                                marginBottom: 30
+                            }} />
+                            <Text style={styles.empty_text}>
+                                {translate('EmptyLogText')}
+                            </Text>
+                        </View>
+                        <View style={{ flex: 0.5, backgroundColor: 'white' }} />
+                    </>}
+            </View>
             <View style={{
                 height: Platform.OS === 'android' ? 0 : 20,
                 backgroundColor: 'white'

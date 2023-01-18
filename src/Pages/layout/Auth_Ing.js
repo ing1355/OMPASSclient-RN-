@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Text, View, Image } from 'react-native';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { Text, View, Image, BackHandler, Platform } from 'react-native';
 import { RFPercentage } from 'react-native-responsive-fontsize';
 import { connect } from 'react-redux';
 import { translate } from '../../../App';
@@ -7,45 +7,69 @@ import { Circle } from '../../Components';
 import ActionCreators from '../../global_store/actions';
 import styles from '../../styles/layout/Auth_Ing';
 
+function useInterval(callback, delay) {
+    const savedCallback = useRef();
+
+    // Remember the latest callback.
+    useEffect(() => {
+        savedCallback.current = callback;
+    }, [callback]);
+
+    // Set up the interval.
+    useEffect(() => {
+        function tick() {
+            savedCallback.current();
+        }
+        if (delay !== null) {
+            let id = setInterval(tick, delay);
+            return () => clearInterval(id);
+        }
+    }, [delay]);
+}
+
+let intervalId = 0
+
 const Auth_Ing = (props) => {
+    // props = {
+    //     ...props,
+    //     route: {
+    //         params: 'Auth'
+    //     }
+    // }
     const [count, setCount] = useState(0);
+    const handleBackPress = useCallback(() => {
+        return true;
+    }, [])
+    
     useEffect(() => {
         const unsubscribe = props.navigation.addListener('focus', () => {
             props.loadingToggle(false);
+            if (Platform.OS === 'android') BackHandler.addEventListener('hardwareBackPress', handleBackPress)
         });
 
-        return unsubscribe;
+        const subscribeCancel = props.navigation.addListener('blur', () => {
+            clearInterval(intervalId)
+            if (Platform.OS === 'android') BackHandler.removeEventListener('hardwareBackPress', handleBackPress)
+        });
+
+        return () => {
+            unsubscribe();
+            subscribeCancel()
+        }
     }, [props.navigation])
 
-    function useInterval(callback, delay) {
-        const savedCallback = useRef();
-
-        // Remember the latest callback.
-        useEffect(() => {
-            savedCallback.current = callback;
-        }, [callback]);
-
-        // Set up the interval.
-        useEffect(() => {
-            function tick() {
-                savedCallback.current();
-            }
-            if (delay !== null) {
-                let id = setInterval(tick, delay);
-                return () => clearInterval(id);
-            }
-        }, [delay]);
-    }
-
-    useInterval(() => {
-        setCount(count => count + 1);
-    }, 500)
-
     useEffect(() => {
+        const intervalHandler = () => {
+            setTimeout(() => {
+                setCount(count => count + 1)
+                intervalHandler()
+            }, 500);
+        }
+        intervalHandler()
         if (props.route.params) {
             setTimeout(() => {
                 props.route.params.callback()
-            }, 100);
+            }, 500);
         }
     }, [])
 

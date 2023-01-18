@@ -25,7 +25,7 @@ public class PublicKeyCredentialSource {
     @Ignore
     private static SecureRandom random;
     @Ignore
-    private static final String KEYPAIR_PREFIX = "omsfido-keypair-";
+    public static final String KEYPAIR_PREFIX = "omsfido-keypair-";
 
     /**
      * Construct a new PublicKeyCredentialSource. This is the canonical object that represents a
@@ -43,7 +43,10 @@ public class PublicKeyCredentialSource {
 
         this.rpId = rpId;
         //this.keyPairAlias = KEYPAIR_PREFIX + Base64.encodeToString(id, Base64.NO_WRAP);
-        this.keyPairAlias = KEYPAIR_PREFIX + rpId;
+
+        //this.keyPairAlias = KEYPAIR_PREFIX + rpId;
+        //newSource
+        this.keyPairAlias = KEYPAIR_PREFIX + rpId + "-" + userDisplayName;
         this.userHandle = userHandle;
         this.keyUseCounter = 1;
     }

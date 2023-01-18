@@ -37,12 +37,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AsyncStorageAppSettingKey, AsyncStorageAuthenticationsKey, AsyncStorageCurrentAuthKey, AsyncStorageInitSecurityKey, AsyncStorageIosTypeKey, AsyncStorageLogKey } from '../Constans/ContstantValues';
 import { settingChange } from '../global_store/actions/settingChange';
 import { CheckPermission } from '../Components/CheckPermissions';
-import * as RootNavigation from '../Route/Router'
 import { ENVIRONMENT } from '@env'
 
 const isDev = ENVIRONMENT === 'dev'
 const Stack = createStackNavigator();
-let { height } = Dimensions.get('window');
 
 const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, updateToggle, isForgeryChange, isRootChange, isRoot, isForgery, usbConnected, usbConnectedChange, changeCurrentAuth, auth_all }) => {
   const [iosType, setIosType] = useState('fingerprint');
@@ -56,35 +54,6 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
   }))
   const dispatch = useDispatch()
   // const netInfo = useNetInfo();
-  const backClickRef = useRef(backClickCount);
-  var backClickCount = 0;
-  var springValue = new Animated.Value(100);
-
-  const handleBackButton = () => {
-    backClickRef.current === 1 ? NativeModules.CustomSystem.ExitApp() : _spring();
-    return true;
-  };
-
-  function _spring() {
-    if (RootNavigation.getRouteName() !== 'home') return;
-    ToastAndroid.show(translate('homeBackMessage'), ToastAndroid.SHORT);
-    backClickRef.current = 1;
-    Animated.sequence([
-      Animated.spring(springValue, {
-        toValue: -0.15 * height,
-        friction: 5,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.timing(springValue, {
-        toValue: 100,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      backClickRef.current = 0;
-    });
-  }
 
   const StackContainer = <Stack.Navigator
     initialRouteName='HOME'
@@ -94,7 +63,7 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
     <Stack.Screen name="HOME" component={Home} />
     <Stack.Screen name="Logs" component={Logs} />
     <Stack.Screen name="QrCode" component={QrCode} />
-    <Stack.Screen name="Auth_Ing" component={Auth_Ing} />
+    <Stack.Screen name="Auth_Ing" options={{gestureEnabled: false}} component={Auth_Ing} />
     <Stack.Screen name="Auth_Complete" component={Auth_Complete} />
     <Stack.Screen name="Auth_Fail" component={Auth_Fail} />
     <Stack.Screen name="Setting" component={Setting} />
@@ -192,7 +161,7 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
       })
     } else {
       if (Platform.OS === 'ios') SplashScreen.hide();
-      setNetworkError(true)
+      // setNetworkError(true)
     }
   }
 
@@ -216,7 +185,7 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
   }
 
   useEffect(() => {
-    if (Platform.OS === 'android') BackHandler.addEventListener('hardwareBackPress', handleBackButton)
+    
     const loadAppSetting = async () => {
       await CheckPermission('All')
       const settings = await AsyncStorage.getItem(AsyncStorageAppSettingKey)

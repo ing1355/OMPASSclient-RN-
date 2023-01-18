@@ -1,4 +1,5 @@
 import notifee, { AndroidImportance, AndroidVisibility, AndroidLaunchActivityFlag } from '@notifee/react-native';
+import { Platform } from 'react-native';
 import { translate } from '../../App';
 
 export const displayNotification = async (message) => {
@@ -11,24 +12,29 @@ export const displayNotification = async (message) => {
         sound:"doorbell",
         vibration: true
     });
-
+    const androidOptions = {
+        channelId,
+        pressAction: {
+            id: 'default',
+            launchActivity: 'default',
+            launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
+        },
+    }
     // firebase 수신 데이터
     const pushData = JSON.parse(message.data.data);
-    
+    if(Platform.OS === 'android') {
+        if(pushData.sessionExpirationTime) {
+            androidOptions.timeoutAfter = pushData.sessionExpirationTime - new Date().getTime()
+        }
+        if(androidOptions.timeoutAfter && androidOptions.timeoutAfter <= 0) return;
+    }
     // 푸시 노출
     await notifee.displayNotification({
         id: message.messageId,
-        title: translate('notificationTitle'),
+        title: translate('notificationTitle', { applicationName: pushData.applicationName }),
         body: translate('notificationBody', { username: pushData.username }),
         data: message.data,
-        android: {
-            channelId,
-            pressAction: {
-                id: 'default',
-                launchActivity: 'default',
-                launchActivityFlags: [AndroidLaunchActivityFlag.SINGLE_TOP],
-            },
-        },
+        android: androidOptions,
         ios: {
             foregroundPresentationOptions: {
                 badge: true,

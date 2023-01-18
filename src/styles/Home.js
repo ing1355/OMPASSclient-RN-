@@ -20,7 +20,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
   },
   container: {
-    flex: 1,
+    flex: 1
   },
   ompass_logo: {
     width: '40%',

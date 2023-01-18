@@ -1,5 +1,6 @@
 #import "AppDelegate.h"
 
+#import <React/RCTLinkingManager.h>
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
 #import <React/RCTRootView.h>
@@ -7,6 +8,8 @@
 #import "RNSplashScreen.h"
 #import <Firebase.h>
 #import "RNFBMessagingModule.h"
+//#import "RNFBMessaging+AppDelegate.h"
+
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>
 #import <React/RCTCxxBridgeDelegate.h>
@@ -14,23 +17,9 @@
 #import <React/RCTSurfacePresenter.h>
 #import <React/RCTSurfacePresenterBridgeAdapter.h>
 #import <ReactCommon/RCTTurboModuleManager.h>
-#import <React/RCTLinkingManager.h>
 #import <react/config/ReactNativeConfig.h>
 
 static NSString *const kRNConcurrentRoot = @"concurrentRoot";
-
-- (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
-{
-  return [RCTLinkingManager application:app openURL:url options:options];
-}
-
-- (BOOL)application:(UIApplication *)application continueUserActivity:(nonnull NSUserActivity *)userActivity
-restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nullable))restorationHandler
-{
- return [RCTLinkingManager application:application
-                  continueUserActivity:userActivity
-                    restorationHandler:restorationHandler];
-}
 
 @interface AppDelegate () <RCTCxxBridgeDelegate, RCTTurboModuleManagerDelegate> {
   RCTTurboModuleManager *_turboModuleManager;
@@ -38,21 +27,24 @@ restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nul
   std::shared_ptr<const facebook::react::ReactNativeConfig> _reactNativeConfig;
   facebook::react::ContextContainer::Shared _contextContainer;
 }
+
 @end
 #endif
+
+
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   if ([FIRApp defaultApp] == nil) {
-       [FIRApp configure];
+    [FIRApp configure];
   }
   
   RCTAppSetupPrepareApp(application);
-
+  
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
-
+  
 #if RCT_NEW_ARCH_ENABLED
   _contextContainer = std::make_shared<facebook::react::ContextContainer const>();
   _reactNativeConfig = std::make_shared<facebook::react::EmptyReactNativeConfig const>();
@@ -60,23 +52,37 @@ restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nul
   _bridgeAdapter = [[RCTSurfacePresenterBridgeAdapter alloc] initWithBridge:bridge contextContainer:_contextContainer];
   bridge.surfacePresenter = _bridgeAdapter.surfacePresenter;
 #endif
-
-//  NSDictionary *initProps = [self prepareInitialProps];
+  
+  //  NSDictionary *initProps = [self prepareInitialProps];
   NSDictionary *appProperties = [RNFBMessagingModule addCustomPropsToUserProps:nil withLaunchOptions:launchOptions];
   UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"ompass", appProperties);
-
+  
   if (@available(iOS 13.0, *)) {
     rootView.backgroundColor = [UIColor systemBackgroundColor];
   } else {
     rootView.backgroundColor = [UIColor whiteColor];
   }
-
+  
   self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
   UIViewController *rootViewController = [UIViewController new];
   rootViewController.view = rootView;
   self.window.rootViewController = rootViewController;
   [self.window makeKeyAndVisible];
   return YES;
+}
+
+- (void)application:(UIApplication *)application
+didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
+//  NSLog(@"APNs device token retrieved: %@", deviceToken);
+//  NSData *data = deviceToken;
+//  NSUInteger capacity = data.length * 2;
+//  NSMutableString *mutableString = [NSMutableString stringWithCapacity:capacity];
+//  const unsigned char *buf = (const unsigned char*) [data bytes];
+//  NSInteger t;
+//  for (t=0; t<data.length; ++t) {    [mutableString appendFormat:@"%02lX", (unsigned long)buf[t]];  }
+//  NSString * hexstring =mutableString;
+//  NSLog(@"Token String: %@", hexstring);
+  [FIRMessaging messaging].APNSToken = deviceToken;
 }
 
 /// This method controls whether the `concurrentRoot`feature of React18 is turned on or off.
@@ -93,11 +99,11 @@ restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nul
 - (NSDictionary *)prepareInitialProps
 {
   NSMutableDictionary *initProps = [NSMutableDictionary new];
-
+  
 #ifdef RCT_NEW_ARCH_ENABLED
   initProps[kRNConcurrentRoot] = @([self concurrentRootEnabled]);
 #endif
-
+  
   return initProps;
 }
 
@@ -108,6 +114,34 @@ restorationHandler:(nonnull void (^)(NSArray<id<UIUserActivityRestoring>> * _Nul
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
+}
+
+//- (void)application:(UIApplication *)application
+//    didReceiveRemoteNotification:(NSDictionary *)userInfo
+//fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
+//  RNFBMessagingAppDelegate *sharedInstance = [RNFBMessagingAppDelegate sharedInstance];
+//    [sharedInstance.conditionBackgroundMessageHandlerSet lock];
+//    NSLog(@"signalBackgroundMessageHandlerSet sharedInstance.backgroundMessageHandlerSet was %@",
+//         sharedInstance.backgroundMessageHandlerSet ? @"YES" : @"NO");
+//    sharedInstance.backgroundMessageHandlerSet = YES;
+//    [sharedInstance.conditionBackgroundMessageHandlerSet broadcast];
+//    [sharedInstance.conditionBackgroundMessageHandlerSet unlock];
+//  completionHandler(UIBackgroundFetchResultNoData);
+//}
+
+- (BOOL)application:(UIApplication *)application
+openURL:(NSURL *)url
+options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options
+{
+  return [RCTLinkingManager application:application openURL:url options:options];
+}
+
+- (BOOL)application:(UIApplication *)application continueUserActivity:(NSUserActivity *)userActivity
+restorationHandler:(void (^)(NSArray * _Nullable))restorationHandler
+{
+  return [RCTLinkingManager application:application
+    continueUserActivity:userActivity
+    restorationHandler:restorationHandler];
 }
 
 #if RCT_NEW_ARCH_ENABLED

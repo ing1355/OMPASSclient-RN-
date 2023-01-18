@@ -7,6 +7,7 @@ import CustomOpacityButton from '../../Components/CustomOpacityButton';
 import { NotoSansRegular } from '../../env';
 import ActionCreators from '../../global_store/actions';
 import styles from '../../styles/layout/Auth_Complete';
+import * as RootNavigation from '../../Route/Router'
 
 const Auth_Fail = (props) => {
     // props = {
@@ -29,22 +30,22 @@ const Auth_Fail = (props) => {
     }, [props.navigation])
 
     function errorHandling(msg) {
-        if(translate(msg).includes('missing')) {
+        if (translate(msg).includes('missing')) {
             return msg;
         } else {
             return translate(msg);
-        }        
+        }
     }
 
     return (
         <>
             <View style={[styles.complete_icon_container, {
-                justifyContent:'flex-end',
+                justifyContent: 'flex-end',
                 marginBottom: 30
             }]}>
                 <Image source={require('../../assets/info_red.png')} resizeMode='contain' style={{ width: '55%', height: '55%' }} />
             </View>
-            <View style={[styles.container, {marginHorizontal : translate(props.route.params.type).length > 10 ? '5%' : '10%', top: 30}]}>
+            <View style={[styles.container, { marginHorizontal: translate(props.route.params.type).length > 10 ? '5%' : '10%', top: 30 }]}>
                 <Text style={{ fontSize: RFPercentage(3), textAlign: 'center', fontFamily: 'NotoSans-Bold' }}>
                     {translate(props.route.params.type) + translate('authFail')}
                 </Text>
@@ -57,7 +58,9 @@ const Auth_Fail = (props) => {
             </View>
             <View style={{ flex: 0.6, flexDirection: 'column', justifyContent: 'flex-end' }}>
                 <CustomOpacityButton style={{ height: 80, backgroundColor: '#3571d6', flexDirection: 'column', justifyContent: 'center' }} onPress={() => {
-                    props.navigation.reset({ index: 0, routes: [{ name: 'HOME' }] });
+                    const stateInfo = props.navigation.getState()
+                    if (!stateInfo || stateInfo.routes.length === 1) RootNavigation.reset()
+                    else props.navigation.goBack();
                 }}>
                     <Text style={{ textAlign: 'center', fontFamily: NotoSansRegular, fontSize: RFPercentage(2.5), color: '#ffffff' }}>
                         {translate('OK')}

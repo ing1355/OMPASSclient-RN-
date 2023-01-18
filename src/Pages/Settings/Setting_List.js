@@ -81,6 +81,7 @@ const Setting_List = (props) => {
                     await changeCurrentAuth(item);
                     await AsyncStorage.setItem(AsyncStorageCurrentAuthKey, item);
                   }
+                  navigation.goBack()
                 };
                 if (!Authentications[item]) {
                   const temp = { ...Authentications }

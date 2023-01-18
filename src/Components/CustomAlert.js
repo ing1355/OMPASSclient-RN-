@@ -7,11 +7,11 @@ import CustomOpacityButton from './CustomOpacityButton';
 
 export function CustomNotification({modalOpen, title, msg, confirm_style, callback, noConfirm, modalClose, okText, onLayout, contentsStyle}) {
     return (
-        <Modal visible={modalOpen} animationType='fade' transparent>
+        <Modal visible={modalOpen} animationType='fade' transparent presentationStyle="overFullScreen">
             <SafeAreaView style={styles.modal_container} onLayout={() => {
                 if(onLayout) onLayout();
             }}>
-                <View style={[styles.modal_box_container, {height: noConfirm ? '30%' : '35%'}]}>
+                <View style={[styles.modal_box_container]}>
                     <View style={styles.modal_title_container}>
                         <Text style={[styles.modal_title_text, {
                             fontSize: title && title.length > 10 ? RFPercentage(2) : RFPercentage(2.5)
@@ -19,12 +19,15 @@ export function CustomNotification({modalOpen, title, msg, confirm_style, callba
                             {title}
                         </Text>
                     </View>
-                    <View style={[{ flex: 2, paddingVertical: '10%', paddingHorizontal: '10%' }, contentsStyle]}>
+                    <View style={[{ paddingVertical: '4%', paddingHorizontal: '8%' }, contentsStyle]}>
                         <View style={styles.modal_content_text_container}>
                             {msg}
                         </View>
                     </View>
-                    {!noConfirm && <CustomOpacityButton
+                    {!noConfirm && <View style={{
+                        height: 50
+                    }}>
+                        <CustomOpacityButton
                         style={[styles.confirm_container, confirm_style]}
                         onPress={() => {
                             modalClose();
@@ -35,22 +38,24 @@ export function CustomNotification({modalOpen, title, msg, confirm_style, callba
                         <Text style={[styles.confirm_text]}>
                             {okText ? okText : translate('OK')}
                         </Text>
-                    </CustomOpacityButton>}
+                    </CustomOpacityButton>
+                    </View>}
                 </View>
             </SafeAreaView>
         </Modal>
     )
 }
 
-export function CustomConfirmModal({ modalOpen, onLayout, title, msg, cancelCallback, modalClose, notCancel, callback, yesOrNo, okText, cancelText}) {
+export function CustomConfirmModal({ modalOpen, onLayout, title, msg, cancelCallback, modalClose, notCancel, callback, yesOrNo, okText, cancelText, onShow, boxStyle}) {
     return (
-        <Modal visible={modalOpen} animationType='fade' transparent>
+        <Modal visible={modalOpen} animationType='fade' transparent onShow={onShow}>
             <Pressable style={styles.modal_container} onLayout={() => {
                 if (onLayout) onLayout();
             }} onPress={() => {
                 Keyboard.dismiss();
             }}>
-                <View style={[styles.modal_box_container, {height: '35%'}]}>
+                {/* <View style={[styles.modal_box_container, {minHeight: '40%', ...boxStyle}]}> */}
+                <View style={[styles.modal_box_container]}>
                     <View style={styles.modal_title_container}>
                         <Text style={styles.modal_title_text, {
                             textAlign:'center',
@@ -59,12 +64,12 @@ export function CustomConfirmModal({ modalOpen, onLayout, title, msg, cancelCall
                             {title}
                         </Text>
                     </View>
-                    <View style={{ flex: 2, paddingVertical: '10%', paddingHorizontal: '10%' }}>
+                    <View style={{ paddingVertical: '4%', paddingHorizontal: '8%' }}>
                         <View style={styles.modal_content_text_container}>
                             {msg}
                         </View>
                     </View>
-                    <View style={{ flexDirection: 'row', flex: 1.3 }}>
+                    <View style={{ flexDirection: 'row', height: 50 }}>
                         <CustomOpacityButton style={styles.cancel_container} onPress={() => {
                             if (cancelCallback) cancelCallback();
                             if (modalClose) modalClose();

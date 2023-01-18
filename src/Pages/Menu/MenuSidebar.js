@@ -36,7 +36,8 @@ const MenuSidebar = ({ opened, toggle }) => {
   ] = useState(false);
   const animation = useRef(new Animated.Value(1)).current;
   const backgroundAnimation = useRef(new Animated.Value(0)).current;
-
+  const openedRef = useRef(opened)
+  
   const animationInterpolation = animation.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0, 150, menuWidth]
@@ -51,18 +52,13 @@ const MenuSidebar = ({ opened, toggle }) => {
   const animationCloseStyles = {
     transform: [{ translateX: animationCloseInterpolation }],
   };
-
-  // const backgroundAnimationInterpolation = backgroundAnimation.interpolate({
-  //   inputRange: [0,1],
-  //   outputRange: ["rgb(0,0,0)", "rgb(255,255,255)"]
-  // })
+  
   const backgroundAnimationStyle = {
-    // backgroundColor: backgroundAnimationInterpolation
     opacity: backgroundAnimation,
   };
 
   useEffect(() => {
-    if (opened) {
+    if (!openedRef.current && opened) {
       createTimingAnimation(backgroundAnimation, {
         toValue: 0.6,
         duration: animationDuration
@@ -70,7 +66,7 @@ const MenuSidebar = ({ opened, toggle }) => {
       createTimingAnimation(animation, {
         toValue: 0
       }).start()
-    } else {
+    } else if(openedRef.current && !opened) {
       createTimingAnimation(backgroundAnimation, {
         toValue: 0,
       }).start()
@@ -79,6 +75,7 @@ const MenuSidebar = ({ opened, toggle }) => {
         duration: animationDuration,
       }).start()
     }
+    openedRef.current = opened
   }, [opened]);
 
   return (
@@ -138,7 +135,7 @@ const MenuSidebar = ({ opened, toggle }) => {
             style={styles.menu_button}
             onPress={() => {
               toggle();
-              RootNavigation.replace('AppSetting');
+              RootNavigation.navigate('AppSetting');
             }}>
             <View style={styles.menu_item}>
               <Image
@@ -155,7 +152,7 @@ const MenuSidebar = ({ opened, toggle }) => {
             style={styles.menu_button}
             onPress={() => {
               toggle();
-              RootNavigation.replace('Logs');
+              RootNavigation.navigate('Logs');
             }}>
             <View style={styles.menu_item}>
               <Image
@@ -171,7 +168,7 @@ const MenuSidebar = ({ opened, toggle }) => {
           <CustomOpacityButton
             style={styles.menu_button}
             onPress={() => {
-              if (RNLocalize.getLocales()[0].countryCode === 'KR') {
+              if (RNLocalize.getLocales()[0].languageCode === 'ko') {
                 Linking.openURL(`https://ompasscloud.com/ko/document/${Platform.OS}`)
               } else {
                 Linking.openURL(`https://ompasscloud.com/en/document/${Platform.OS}`)
@@ -190,7 +187,7 @@ const MenuSidebar = ({ opened, toggle }) => {
           </CustomOpacityButton>
         </View>
         <Pressable style={styles.feedback_container} onPress={() => {
-          if (RNLocalize.getLocales()[0].countryCode === 'KR') {
+          if (RNLocalize.getLocales()[0].languageCode === 'ko') {
             Linking.openURL(`https://docs.google.com/forms/d/e/1FAIpQLSf_S5Av-D6IHzEWFufFhAqicBuMmGafxHFcY6IJKXM_44xzlw/viewform?usp=pp_url&entry.1778377264=${Platform.OS === 'android' ? 'Android' : 'iOS'}&entry.249062392=${getVersion()}(${getBuildNumber()})`)
           } else {
             Linking.openURL(`https://docs.google.com/forms/d/e/1FAIpQLSewSB0utBAyC7yEnlyCMACtlyEPZ16B5F63VoJJKPI_hOIW-Q/viewform?usp=pp_url&entry.234588716=${Platform.OS === 'android' ? 'Android' : 'iOS'}&entry.1086283936=${getVersion()}(${getBuildNumber()})`)

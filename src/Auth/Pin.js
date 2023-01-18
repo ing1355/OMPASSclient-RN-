@@ -4,12 +4,14 @@ const Pin = (props) => {
     if (props.type && props.callback) {
         const { type, callback } = props;
         const params = {
+            cancelCallback: props.cancelCallback,
             callback: () => {
                 callback();
             },
             text: type
         };
-        RootNavigation.replace('Pin', params)
+        // if(props.type === '등록') RootNavigation.replace('Pin', params)
+        RootNavigation.navigate('Pin', params)
     } else if (props.callback) {
         const params = {
             callback: () => {
@@ -17,7 +19,7 @@ const Pin = (props) => {
             },
             text: 'first_regist'
         }
-        RootNavigation.replace('Pin', params)
+        RootNavigation.navigate('Pin', params)
     } else if (props.AuthenticateCallback) {
         const params = {
             callback: () => {
@@ -25,7 +27,7 @@ const Pin = (props) => {
             },
             text: 'local_Authenticate'
         }
-        RootNavigation.replace('Pin', params)
+        RootNavigation.navigate('Pin', params)
     }
 }
 

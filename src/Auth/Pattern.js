@@ -4,12 +4,14 @@ const Pattern = (props) => {
     if (props.type && props.callback) {
         const {type, callback} = props;
         const params = {
+            cancelCallback: props.cancelCallback,
             callback: () => {
                 callback();
             },
             text: type
         };
-        RootNavigation.replace('Pattern', params)
+        // if(props.type === '등록') RootNavigation.replace('Pattern', params)
+        RootNavigation.navigate('Pattern', params)
     } else if(props.callback) {
         const params = {
             callback: () => {
@@ -17,7 +19,7 @@ const Pattern = (props) => {
             },
             text: 'first_regist'
         }
-        RootNavigation.replace('Pattern', params)
+        RootNavigation.navigate('Pattern', params)
     } else if(props.AuthenticateCallback) {
         const params = {
             callback: () => {
@@ -25,7 +27,7 @@ const Pattern = (props) => {
             },
             text: 'local_Authenticate'
         }
-        RootNavigation.replace('Pattern', params)
+        RootNavigation.navigate('Pattern', params)
     }
 }
 

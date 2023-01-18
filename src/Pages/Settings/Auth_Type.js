@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useRef, useState } from 'react';
-import { View, Text, Image, Pressable, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, Image, Platform } from 'react-native';
 import { connect } from 'react-redux';
 import { translate } from '../../../App';
 import ActionCreators from '../../global_store/actions';
@@ -13,7 +13,7 @@ import CustomOpacityButton from '../../Components/CustomOpacityButton';
 
 const Auth_Type = (props) => {
     const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-    var modalCallback = useRef(null);
+    const modalCallback = useRef(null);
     
     const img_src = {
         biometrics: <Image style={{ flex: 1 }} resizeMode='contain' source={require("../../assets/icon_biometric.png")} />,

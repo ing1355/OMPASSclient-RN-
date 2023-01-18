@@ -38,6 +38,7 @@ const Face = (props) => {
         });
 
         const subscribe = props.navigation.addListener('blur', async () => {
+            if(props.route.params && props.route.params.cancelCallback) props.route.params.cancelCallback()
             subscription.remove()
             Init_Error();
         });
@@ -52,7 +53,6 @@ const Face = (props) => {
         const { text, callback } = props.route.params;
         if (text === 'local_Authenticate' || text === 'first_regist') {
             callback();
-            if (text === 'first_regist') props.navigation.replace('Setting');
         } else {
             const params = {
                 callback: () => {

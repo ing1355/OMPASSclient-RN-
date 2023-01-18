@@ -18,6 +18,7 @@
   "EXPIRE_PROCEDURE": "Expired Procedure",
   "FAIL_VERIFY_SIGNATURE": "Certificate validation failed",
   "FAIL_VERIFY_DATA": "Registration data validation error",
+  "EXPIRED_SESSION": "Expired session",
   "loginSetting": "Login Settings",
   "authSetting": "Current Authentication Type",
   "SettingSubTitleText": "Select the authentication type to add or remove",
@@ -142,6 +143,8 @@
   "yes": "Yes",
   "no": "No",
   "deviceName": "Device Name",
+  "confirmUserTitle": "%{type} Request",
+  "confirmUserDescription": "Are you right?",
   "newDeviceTitle": "Is This A Trusted Device?",
   "newDeviceDescription": "You are logged in from a new device",
   "qr_regist_text": "Please scan the QR code to register\nthe authentication device",
@@ -181,7 +184,7 @@
   "please_confirm_qr_code": "Touch the button\nto scan the OMPASS QR code.",
   "QRCodeText": "Scan QR code to\nregister or authenticate",
   "SendFeedBack": "Send Feedback",
-  "notificationTitle": "OMPASS Authentication",
+  "notificationTitle": "OMPASS Authentication From %{applicationName}",
   "notificationBody": "Login request for %{username}",
   "registerInfoID": "ID",
   "domain": "DOMAIN",
@@ -192,5 +195,9 @@
   "LogsNumSetting": "Maximum log size",
   "LogsNumText": "%{num} logs",
   "NotificationSetting": "Notification Setting",
-  "EmptyLogText": "No log information exists"
+  "EmptyLogText": "No log information exists",
+  "authFirstItemTitle": "Service",
+  "authSecondItemTitle": "Username",
+  "authThirdItemTitle": "IP",
+  "authFourthItemTitle": "Location"
 }

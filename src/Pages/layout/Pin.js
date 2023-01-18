@@ -83,6 +83,7 @@ const Pin = (props) => {
       props.loadingToggle(false);
     });
     const blursubscribe = props.navigation.addListener('blur', () => {
+      if(props.route.params && props.route.params.cancelCallback) props.route.params.cancelCallback()
       if (AppStateListener) AppStateListener.remove()
       setCount(-1);
       clearInterval(id);
@@ -109,7 +110,6 @@ const Pin = (props) => {
         }
       }
     } else {
-      // console.log('stamp : ', errorTimeStamp)
     }
   }, [errorTimeStamp]);
   
@@ -250,7 +250,6 @@ const Pin = (props) => {
                 AuthSecurity(value, 'pin', '등록', (suc) => {
                   if (props.route.params) {
                     loadingToggle(false);
-                    props.route.params.callback();
                     setNotifyOpen(true);
                   }
                 });
@@ -446,8 +445,8 @@ const Pin = (props) => {
           </Text>
         }
         callback={() => {
+          props.route.params.callback();
           props.loadingToggle(false);
-          props.navigation.replace('Setting')
         }}
       />
       <CustomConfirmModal

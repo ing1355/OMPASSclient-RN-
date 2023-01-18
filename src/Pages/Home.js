@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
 import {
   ImageBackground,
   Platform,
@@ -23,7 +23,7 @@ import MenuButton from './Menu/MenuButton';
 import MenuSidebar from './Menu/MenuSidebar';
 import { AsyncStorageAuthenticationsKey, AsyncStorageCurrentAuthKey } from '../Constans/ContstantValues';
 import CustomButton from '../Components/CustomButton';
-
+import * as RootNavigation from '../Route/Router'
 let { height } = Dimensions.get('window');
 let clickButton = false
 
@@ -43,6 +43,11 @@ const Home = ({
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [notifyOpen_3, setNotifyOpen_3] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuOpenRef = useRef(null)
+
+  let backClickCount = 0;
+  const backClickRef = useRef(backClickCount);
+  let springValue = new Animated.Value(100);
   
   const qrAnimation = useRef(new Animated.Value(1)).current;
   const qrAnimationStyles = {
@@ -75,14 +80,46 @@ const Home = ({
       setNotifyOpen(true);
     }
   }
+
+  const handleBackButton = () => {
+    if(menuOpenRef.current) setMenuOpen(false)
+    else {
+      backClickRef.current === 1 ? NativeModules.CustomSystem.ExitApp() : _spring();
+    }
+    return true;
+  };
+
+  function _spring() {
+    if (RootNavigation.getRouteName() !== 'home') return;
+    ToastAndroid.show(translate('homeBackMessage'), ToastAndroid.SHORT);
+    backClickRef.current = 1;
+    Animated.sequence([
+      Animated.spring(springValue, {
+        toValue: -0.15 * height,
+        friction: 5,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(springValue, {
+        toValue: 100,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      backClickRef.current = 0;
+    });
+  }
   
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
       loadingToggle(false);
       clickButton = false
+      if (Platform.OS === 'android') BackHandler.addEventListener('hardwareBackPress', handleBackButton)
     });
-
-    const unsubscribeBlur = navigation.addListener('blur', async () => { });
+    
+    const unsubscribeBlur = navigation.addListener('blur', async () => { 
+      if (Platform.OS === 'android') BackHandler.removeEventListener('hardwareBackPress', handleBackButton)
+    });
     Animated.loop(Animated.sequence([Animated.timing(tooltipAnimation, {
       toValue: 10,
       duration: 500,
@@ -120,6 +157,10 @@ const Home = ({
     setMenuOpen(!menuOpen);
   };
 
+  useLayoutEffect(() => {
+    menuOpenRef.current = menuOpen
+  },[menuOpen])
+
   useEffect(() => {
     Animated.timing(qrAnimation, {
       toValue: qrPressed ? 1.3 : 1,
@@ -138,7 +179,6 @@ const Home = ({
         }}>
           <MenuButton />
         </CustomButton>
-        <MenuSidebar opened={menuOpen} toggle={menuToggle} />
         <View style={{ flex: 0.5 }}></View>
         <View
           style={{
@@ -185,7 +225,7 @@ const Home = ({
               if (!(await CheckPermission(['CAMERA']))) {
                 return setNotifyOpen_3(true);
               }
-              navigation.replace('QrCode');
+              navigation.navigate('QrCode');
             }
           }}>
           <Animated.View style={[styles.qr_tooltip, tooltipAnimationStyles]}>
@@ -234,6 +274,7 @@ const Home = ({
           </>
         }
       />
+      <MenuSidebar opened={menuOpen} toggle={menuToggle} />
     </>
   );
 };

@@ -31,9 +31,9 @@ public class WebAuthn : NSObject {
   }
   
   @objc
-  func Register(_ fidoAddress:String, domain:String, accessKey:String, username:String, clientInfo:String, displayName:String, token:String, authorization:String,
+  func Register(_ fidoAddress:String, domain:String, accessKey:String, username:String, clientInfo:String, displayName:String, pushToken:String, authorization:String,
                 challenge:String, userId:String, errorCallback: @escaping RCTResponseSenderBlock, successCallback: @escaping RCTResponseSenderBlock) {
-    authenticatorMangager?.token = token
+    authenticatorMangager?.pushToken = pushToken
     authenticatorMangager?.clientInfo = clientInfo
     authenticatorMangager?.tryRegister( completion: {state in
       if state == "true" {
@@ -64,9 +64,10 @@ public class WebAuthn : NSObject {
   }
   
   @objc
-  func Authenticate(_ fidoAddress:String, domain:String, accessKey:String, username:String, authorization:String, challenge:String, userId:String,
+  func Authenticate(_ pushToken:String, fidoAddress:String, domain:String, accessKey:String, username:String, authorization:String, challenge:String, userId:String,
                     clientInfo:String, errorCallback: @escaping RCTResponseSenderBlock, successCallback: @escaping RCTResponseSenderBlock) {
     authenticatorMangager?.clientInfo = clientInfo
+    authenticatorMangager?.pushToken = pushToken
     authenticatorMangager?.tryAuthentication(completion: {state in
       if state == "true" {
         successCallback([self.authenticatorMangager?.authentication_token ?? ""])

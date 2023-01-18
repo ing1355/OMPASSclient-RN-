@@ -1,8 +1,9 @@
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useRef, useLayoutEffect, useState } from 'react';
 import {
   LogBox,
   AppState,
-  Linking
+  Linking,
+  Vibration
 } from 'react-native';
 import 'react-native-gesture-handler';
 import Routes from './src/Route/Routes';
@@ -17,7 +18,7 @@ import { I18n } from 'i18n-js';
 import { displayNotification } from './src/Function/displayNotification';
 import { AsyncStorageFcmTokenKey, AsyncStoragePushDataKey } from './src/Constans/ContstantValues';
 import notifee, { EventType } from '@notifee/react-native'
-import dynamicLink from '@react-native-firebase/dynamic-links'
+import * as RootNavigation from './src/Route/Router'
 import { getDataByNonce } from './src/Function/GlobalFunction';
 
 LogBox.ignoreAllLogs();
@@ -27,7 +28,7 @@ const getToken = async () => {
     console.log('fcm token : ', token)
     await AsyncStorage.setItem(AsyncStorageFcmTokenKey, token)
   }).catch(err => {
-    console.log('why err ? : ', err)
+    console.log('why get fcm token err ? : ', err)
   })
 }
 
@@ -63,31 +64,44 @@ export function isAuthenticateCheckedToggle(checked) {
   isAuthenticateChecked = checked
 }
 
+const initTempData = {
+  clientInfo: {
+    browser: '',
+    gpu: '',
+    os: '',
+    osVersion: '',
+    name: '',
+    ip: '',
+    location: ''
+  }
+}
+
 const App = (props) => {
+  const [push_result_temp, setPush_result_temp] = useState(initTempData)
   const [execute, setExecute] = useState(false);
   const [fidoType, setFidoType] = useState("auth")
-  const [push_result, setPush_result] = useState({
-    clientInfo: {
-      browser: null,
-      gpu: null,
-      os: null,
-      osVersion: null,
-      name: null
-    }
-  });
+  const tempRef = useRef({})
 
   function handleBackPress() {
     return true;
   }
 
+  useLayoutEffect(() => {
+    tempRef.current = push_result_temp
+  },[push_result_temp])
+
   const pushCallback = async (data) => {
-    await notifee.cancelAllNotifications()
-    console.log('pushCallback', data)
     push_function(data, res => {
-      setFidoType('auth')
-      setPush_result(JSON.parse(res));
-      setExecute(true);
+      const result = JSON.parse(res)
+      if(!result.sessionExpirationTime || result.sessionExpirationTime - new Date().getTime() > 0) {
+        if(result.accessKey !== tempRef.current.accessKey) {
+          setFidoType('auth')
+          setPush_result_temp(result)
+          setExecute(true);
+        }
+      }
     })
+    await AsyncStorage.removeItem(AsyncStoragePushDataKey)
   }
 
   const checkAuthenticatePushData = async (msg) => {
@@ -98,7 +112,6 @@ const App = (props) => {
       const data = await AsyncStorage.getItem(AsyncStoragePushDataKey)
       if (data) {
         pushCallback(data)
-        await AsyncStorage.removeItem(AsyncStoragePushDataKey)
       }
     }
     isAuthenticateChecked = false;
@@ -110,23 +123,37 @@ const App = (props) => {
       setI18nConfig();
     };
     RNLocalize.addEventListener('change', handleLocalizationChange);
-    if (!isAuthenticateChecked) checkAuthenticatePushData()
-    notifee.onForegroundEvent(async ({ type, detail }) => {
-      const { notification, pressAction } = detail
-      if (type === EventType.DELIVERED) {
-        console.log('1', type, detail)
-        if (!isAuthenticateChecked) checkAuthenticatePushData(notification)
+    Linking.getInitialURL().then(url => {
+      if (url) {
+        appLinkCallback(url)
+      } else {
+        if (!isAuthenticateChecked) {
+          checkAuthenticatePushData()
+        }
       }
-    });
+      AppState.addEventListener('change', async nextAppState => {
+        if (nextAppState === 'active' && !isAuthenticateChecked) {
+          checkAuthenticatePushData()
+        }
+      })
+    })
+    Linking.addEventListener('url', ({ url }) => {
+      if (url) appLinkCallback(url)
+    })
     messaging().onMessage(message => {
-      console.log(message)
+      console.log('fore Fcm : ', message)
       if (message) {
         displayNotification(message);
       }
     })
-    AppState.addEventListener('change', nextAppState => {
-      if (nextAppState === 'active' && !isAuthenticateChecked) checkAuthenticatePushData()
-    })
+    notifee.onForegroundEvent(async ({ type, detail }) => {
+      const { notification, pressAction } = detail
+      if (type === EventType.DELIVERED) {
+        if (!isAuthenticateChecked) {
+          checkAuthenticatePushData(notification)
+        }
+      }
+    });
     return () => {
       // RNLocalize.removeEventListener('change', handleLocalizationChange);
       // BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
@@ -134,38 +161,47 @@ const App = (props) => {
   }, [])
 
   const appLinkCallback = (url) => {
-    console.log(url)
+    isAuthenticateChecked = true
     let regex = /[?&]([^=#]+)=([^&#]*)/g,
-      params = {},
-      match
+    params = {},
+    match
     while ((match = regex.exec(url))) {
       params[match[1]] = match[2]
     }
-    console.log(params)
-    getDataByNonce(params.url, params.nonce, null, (data) => {
-      setPush_result(data)
-      setExecute(true)
+    const type = params.url.includes('auth') ? 'OMPASSAuth' : 'OMPASSRegist'
+
+    getDataByNonce(params.url, params.nonce, params.userId, (data) => {
+      if (data.error) {
+        Vibration.vibrate()
+        RootNavigation.navigate('Auth_Fail', {
+          type,
+          reason: translate('CODE002'),
+        });
+      } else {
+        if(data.accessKey !== tempRef.current.accessKey) {
+          setPush_result_temp(data)
+          setExecute(true)
+        }
+      }
+      isAuthenticateChecked = false
+    }, (err) => {
+      isAuthenticateChecked = false
+      console.log(err)
+      Vibration.vibrate()
+      RootNavigation.navigate('Auth_Fail', {
+        type,
+        reason: err && (err.error || err),
+      });
     })
   }
-
-  useEffect(() => {
-    Linking.getInitialURL().then(url => {
-      if(url) appLinkCallback(url)
-    })
-    Linking.addEventListener('url', ({url}) => {
-      console.log(url)
-      appLinkCallback(url)
-    })
-    // setTimeout(() => {
-    //   NativeModules.CustomSystem.ExitApp()
-    // }, 5000);
-  }, [])
 
   return (
     <>
       <Loading />
       <Routes />
-      <FidoAuthentication type={fidoType} authData={push_result} setAuthData={setPush_result} execute={execute} setExecute={setExecute} />
+      <FidoAuthentication type={fidoType} execute={execute} setExecute={setExecute} tempAuthData={push_result_temp} initCallback={() => {
+        setPush_result_temp(initTempData)
+      }}/>
     </>
   );
 };

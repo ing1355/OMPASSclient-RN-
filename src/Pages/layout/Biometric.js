@@ -25,7 +25,19 @@ const Biometric = (props) => {
             props.loadingToggle(false);
         });
 
-        return unsubscribe;
+        const subscribe = props.navigation.addListener('state', () => {
+            run_biometric()
+        })
+
+        const blurHandler = props.navigation.addListener('blur', async () => {
+            if(props.route.params && props.route.params.cancelCallback) props.route.params.cancelCallback()
+            subscribe()
+            unsubscribe()
+        });
+
+        return () => {
+            blurHandler()
+        }
     }, [props.navigation])
 
     async function delete_biometric() {
@@ -107,7 +119,9 @@ const Biometric = (props) => {
             <Title
                 x
                 title={translate('biometrics')}
-                backRoute={props.route.params.text === 'first_regist' ? 'Setting' : 'HOME'}/>
+                xback
+                // backRoute={props.route.params.text === 'first_regist' ? 'Setting' : 'HOME'}
+                />
             <View style={styles.container}>
                 <View style={styles.icon_container}>
                     <Image source={require('../../assets/icon_biometric.png')} resizeMode='contain' style={{ width: '40%', height: '40%', alignSelf: 'center' }} />
@@ -142,7 +156,6 @@ const Biometric = (props) => {
                 callback={() => {
                     props.route.params.callback();
                     props.loadingToggle(false);
-                    props.navigation.replace('Setting')
                 }} />
             <CustomConfirmModal
                 title={translate('isLock')}
@@ -228,7 +241,7 @@ const Biometric = (props) => {
                     setEnrollModalOpen(false);
                 }}
                 cancelCallback={() => {
-                    if (props.route.params.text === 'first_regist') props.navigation.replace('Setting');
+                    if (props.route.params.text === 'first_regist') props.navigation.goBack();
                     else setDeleteModalOpen(true);
                 }}
                 callback={() => {

@@ -119,9 +119,9 @@ public class CredentialSafe {
      * @return The KeyPair object representing the newly generated keypair.
      * @throws VirgilException
      */
-    private KeyPair generateNewES256KeyPair(String alias, String x500Principal) throws VirgilException {
+    private KeyPair generateNewES256KeyPair(String alias, String x500Principal, String userId) throws VirgilException {
         if (!createMode) {
-            return this.getKeyPairByAlias(alias);
+            return this.getKeyPairByAlias(alias, userId);
         }
         KeyGenParameterSpec spec = new KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_SIGN)
                 .setAlgorithmParameterSpec(new ECGenParameterSpec(CURVE_NAME))
@@ -161,7 +161,7 @@ public class CredentialSafe {
 
         String x500Principal = "CN=" + userDisplayName + ", OU=Authenticator Attestation, O=" + rpEntityId + ", C=KR";
         try {
-            generateNewES256KeyPair(credentialSource.keyPairAlias, x500Principal); // return not captured -- will retrieve credential by alias
+            generateNewES256KeyPair(credentialSource.keyPairAlias, x500Principal, userDisplayName); // return not captured -- will retrieve credential by alias
         } catch (NullPointerException e) {
             return null;
         }
@@ -203,13 +203,21 @@ public class CredentialSafe {
      * not accessible.
      * @throws VirgilException
      */
-    public KeyPair getKeyPairByAlias(@NonNull String alias) throws VirgilException {
-        KeyStore.Entry keyEntry;
+    public KeyPair getKeyPairByAlias(@NonNull String alias, @NonNull String userId) throws VirgilException {
+        System.out.println("alias : " + alias);
         try {
             PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, null);
             PublicKey publicKey = null;
             try {
-                publicKey = keyStore.getCertificate(alias).getPublicKey();
+                if(createMode) {
+                    publicKey = keyStore.getCertificate(alias).getPublicKey();
+                } else {
+                    if(keyStore.getCertificate(userId) != null) {
+                        publicKey = keyStore.getCertificate(userId).getPublicKey();
+                    } else {
+                        publicKey = keyStore.getCertificate(alias).getPublicKey();
+                    }
+                }
             } catch (NullPointerException e) {
                 Auth.err_msg = "앱 재설치";
                 return null;
@@ -228,8 +236,8 @@ public class CredentialSafe {
      * @throws VirgilException
      */
     @RequiresApi(api = Build.VERSION_CODES.M)
-    public boolean keyRequiresVerification(@NonNull String alias) throws VirgilException {
-        PrivateKey privateKey = getKeyPairByAlias(alias).getPrivate();
+    public boolean keyRequiresVerification(@NonNull String alias, @NonNull String userId) throws VirgilException {
+        PrivateKey privateKey = getKeyPairByAlias(alias, userId).getPrivate();
         KeyFactory factory;
         KeyInfo keyInfo;
 

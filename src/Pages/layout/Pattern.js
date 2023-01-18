@@ -126,6 +126,7 @@ const Pattern = (props) => {
             }, 100);
         });
         const blursubscribe = props.navigation.addListener('blur', () => {
+            if(props.route.params && props.route.params.cancelCallback) props.route.params.cancelCallback()
             setTimeout(() => {
                 init_all_value();
                 setIsConfirm(false);
@@ -301,7 +302,6 @@ const Pattern = (props) => {
                             AuthSecurity(valueRef.current.toString(), "pattern", "등록", (suc) => {
                                 if (suc === 'success') {
                                     if (Platform.OS === 'ios') props.loadingToggle(false);
-                                    props.route.params.callback();
                                     setModalOpen(true);
                                 }
                             })
@@ -419,8 +419,8 @@ const Pattern = (props) => {
                     {props.route.params.text === 'first_regist' ? translate('patternRegistSuccess') : null}
                 </Text>}
                 callback={() => {
+                    props.route.params.callback();
                     props.loadingToggle(false);
-                    props.navigation.replace('Setting')
                 }} />
             <CustomConfirmModal
                 title={translate('isLock')}
