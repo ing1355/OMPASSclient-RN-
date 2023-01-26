@@ -97,7 +97,6 @@ const App = (props) => {
         if(result.accessKey !== tempRef.current.accessKey) {
           setFidoType('auth')
           setPush_result_temp(result)
-          setExecute(true);
         }
       }
     })
@@ -180,7 +179,6 @@ const App = (props) => {
       } else {
         if(data.accessKey !== tempRef.current.accessKey) {
           setPush_result_temp(data)
-          setExecute(true)
         }
       }
       isAuthenticateChecked = false
@@ -199,7 +197,7 @@ const App = (props) => {
     <>
       <Loading />
       <Routes />
-      <FidoAuthentication type={fidoType} execute={execute} setExecute={setExecute} tempAuthData={push_result_temp} initCallback={() => {
+      <FidoAuthentication type={fidoType} tempAuthData={push_result_temp} initCallback={() => {
         setPush_result_temp(initTempData)
       }}/>
     </>

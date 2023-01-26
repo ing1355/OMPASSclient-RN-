@@ -262,7 +262,7 @@ const Home = ({
         modalOpen={notifyOpen}
         modalClose={async () => {
           setNotifyOpen(false);
-          navigation.replace('Setting');
+          navigation.navigate('Setting');
         }}
         title={translate('register_auth')}
         msg={

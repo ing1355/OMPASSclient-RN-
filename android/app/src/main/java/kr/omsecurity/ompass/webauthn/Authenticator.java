@@ -15,6 +15,7 @@ import kr.omsecurity.ompass.webauthn.util.*;
 
 import java.nio.ByteBuffer;
 import java.security.KeyPair;
+import java.security.KeyStoreException;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.cert.Certificate;
@@ -135,7 +136,7 @@ public class Authenticator {
             // 8. If any error occurred, return an error code equivalent to "UnknownError"
             Log.w(TAG, "couldn't generate credential", e);
             throw new UnknownError();
-        } catch (NullPointerException nullPointerException) {
+        } catch (NullPointerException | KeyStoreException nullPointerException) {
             nullPointerException.printStackTrace();
             return null;
         }
@@ -167,7 +168,7 @@ public class Authenticator {
                     }).build();
 
             // create our signature object
-            PrivateKey privateKey = credentialSafe.getKeyPairByAlias(credentialSource.keyPairAlias, credentialSource.userDisplayName).getPrivate();
+            PrivateKey privateKey = credentialSafe.getKeyPairByAlias(credentialSource.keyPairAlias).getPrivate();
             Signature signature = WebAuthnCryptography.generateSignatureObject(privateKey);
             BiometricPrompt.CryptoObject cryptoObject = new BiometricPrompt.CryptoObject(signature);
 
@@ -247,7 +248,7 @@ public class Authenticator {
         byte[] authenticatorData = constructAuthenticatorData(rpIdHash, attestedCredentialData, 0); // 141 bytes
 
         // 13. Return attestation object
-        AttestationObject attestationObject = constructAttestationObject(authenticatorData, options.clientDataHash, credentialSource.keyPairAlias, signature, credentialSource.userDisplayName);
+        AttestationObject attestationObject = constructAttestationObject(authenticatorData, options.clientDataHash, credentialSource.keyPairAlias, signature, credentialSource.rpId);
         return attestationObject;
     }
 
@@ -328,7 +329,7 @@ public class Authenticator {
 
         // get verification, if necessary
         AuthenticatorGetAssertionResult result;
-        boolean keyNeedsUnlocking = credentialSafe.keyRequiresVerification(selectedCredential.keyPairAlias, selectedCredential.userDisplayName);
+        boolean keyNeedsUnlocking = credentialSafe.keyRequiresVerification(selectedCredential.keyPairAlias);
         if (options.requireUserVerification || keyNeedsUnlocking) {
             if (ctx == null) {
                 throw new VirgilException("User Verification requires passing a context to getAssertion");
@@ -352,7 +353,7 @@ public class Authenticator {
                     }).build();
 
             // create our signature object
-            PrivateKey privkey = credentialSafe.getKeyPairByAlias(selectedCredential.keyPairAlias, selectedCredential.userDisplayName).getPrivate();
+            PrivateKey privkey = credentialSafe.getKeyPairByAlias(selectedCredential.keyPairAlias).getPrivate();
             Signature signature = WebAuthnCryptography.generateSignatureObject(privkey);
             BiometricPrompt.CryptoObject cryptoObject = new BiometricPrompt.CryptoObject(signature);
 
@@ -422,7 +423,7 @@ public class Authenticator {
             byteBuffer.put(authenticatorData);
             byteBuffer.put(options.clientDataHash);
             byte[] toSign = byteBuffer.array();
-            KeyPair keyPair = this.credentialSafe.getKeyPairByAlias(selectedCredential.keyPairAlias, selectedCredential.userDisplayName);
+            KeyPair keyPair = this.credentialSafe.getKeyPairByAlias(selectedCredential.keyPairAlias);
             signatureBytes = this.cryptoProvider.performSignature(keyPair.getPrivate(), toSign, signature);
             Log.d(TAG, "Performed signature using credential keyPairAlias: " + selectedCredential.keyPairAlias);
 
@@ -464,9 +465,9 @@ public class Authenticator {
         // | AAGUID | L | credentialId | credentialPublicKey |
         // |   16   | 2 |      32      |          n          |
         // total size: 50+n
-        KeyPair keyPair = this.credentialSafe.getKeyPairByAlias(credentialSource.keyPairAlias, credentialSource.userDisplayName);
-        //byte[] encodedPublicKey = this.credentialSafe.coseEncodePublicKey(keyPair.getPublic());
-        byte[] encodedPublicKey = this.credentialSafe.asCBORForPublicKey(credentialSource.keyPairAlias);
+        KeyPair keyPair = this.credentialSafe.getKeyPairByAlias(credentialSource.keyPairAlias);
+        byte[] encodedPublicKey = CredentialSafe.coseEncodePublicKey(keyPair.getPublic());
+//        byte[] encodedPublicKey = this.credentialSafe.asCBORForPublicKey(credentialSource.keyPairAlias);
         //byte[] publicKeyEncoded = this.credentialSafe.getCertificateFromKeyStore(credentialSource.keyPairAlias).getPublicKey().getEncoded();
 
         // doublek
@@ -536,7 +537,7 @@ public class Authenticator {
      * @return a well-formed AttestationObject structure
      * @throws VirgilException
      */
-    private AttestationObject constructAttestationObject(byte[] authenticatorData, byte[] clientDataHash, String keyPairAlias, Signature signature, String userId) throws VirgilException {
+    private AttestationObject constructAttestationObject(byte[] authenticatorData, byte[] clientDataHash, String keyPairAlias, Signature signature, String rpId) throws VirgilException {
         // Our goal in this function is primarily to create a signature over the relevant data fields
         // From https://www.w3.org/TR/webauthn/#packed-attestation we can see that for self-signed attestation,
         // `sig` is generated by signing the concatenation of authenticatorData and clientDataHash
@@ -561,7 +562,7 @@ public class Authenticator {
 //        assert toSign.length == 141 + 32;
 
         // grab our keypair for this credential
-        KeyPair keyPair = this.credentialSafe.getKeyPairByAlias(keyPairAlias, userId);
+        KeyPair keyPair = this.credentialSafe.getKeyPairByAlias(keyPairAlias);
         byte[] signatureBytes = this.cryptoProvider.performSignature(keyPair.getPrivate(), toSign, signature);
 
         // doublek

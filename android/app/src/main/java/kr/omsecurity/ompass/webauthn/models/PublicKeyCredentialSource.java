@@ -6,6 +6,7 @@ import androidx.room.Ignore;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
+import java.security.KeyStore;
 import java.security.SecureRandom;
 
 @Entity(tableName = "credentials", indices = {@Index("rpId")})
@@ -46,6 +47,7 @@ public class PublicKeyCredentialSource {
 
         //this.keyPairAlias = KEYPAIR_PREFIX + rpId;
         //newSource
+
         this.keyPairAlias = KEYPAIR_PREFIX + rpId + "-" + userDisplayName;
         this.userHandle = userHandle;
         this.keyUseCounter = 1;

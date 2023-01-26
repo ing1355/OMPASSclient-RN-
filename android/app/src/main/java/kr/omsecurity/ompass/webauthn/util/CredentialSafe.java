@@ -1,5 +1,7 @@
 package kr.omsecurity.ompass.webauthn.util;
 
+import static kr.omsecurity.ompass.webauthn.models.PublicKeyCredentialSource.KEYPAIR_PREFIX;
+
 import android.content.Context;
 import android.os.Build;
 import android.security.keystore.KeyGenParameterSpec;
@@ -41,6 +43,7 @@ import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -119,9 +122,9 @@ public class CredentialSafe {
      * @return The KeyPair object representing the newly generated keypair.
      * @throws VirgilException
      */
-    private KeyPair generateNewES256KeyPair(String alias, String x500Principal, String userId) throws VirgilException {
+    private KeyPair generateNewES256KeyPair(String alias, String x500Principal) throws VirgilException {
         if (!createMode) {
-            return this.getKeyPairByAlias(alias, userId);
+            return this.getKeyPairByAlias(alias);
         }
         KeyGenParameterSpec spec = new KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_SIGN)
                 .setAlgorithmParameterSpec(new ECGenParameterSpec(CURVE_NAME))
@@ -151,17 +154,19 @@ public class CredentialSafe {
      * rpId, credentialId, etc.
      * @throws VirgilException
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public PublicKeyCredentialSource generateCredential(@NonNull String rpEntityId, byte[] userHandle, String userDisplayName) throws VirgilException {
-        PublicKeyCredentialSource credentialSource = new PublicKeyCredentialSource(rpEntityId, userHandle, userDisplayName);
+    public PublicKeyCredentialSource generateCredential(@NonNull String rpEntityId, byte[] userHandle, String userDisplayName) throws VirgilException, KeyStoreException {
 
+        PublicKeyCredentialSource credentialSource = new PublicKeyCredentialSource(rpEntityId, userHandle, userDisplayName);
+        // v1.2.0 버전 인증서 등록여부 확인
+        Certificate old_cert = keyStore.getCertificate(KEYPAIR_PREFIX + rpEntityId);
+        if(old_cert != null) credentialSource.keyPairAlias = KEYPAIR_PREFIX + rpEntityId;
         // Keystore에 credentialSource.keyPairAlias로 등록되어있는지 확인.
         if (createMode) deleteCertFromKeyStore(credentialSource.keyPairAlias);
 //        Certificate cert = getCertificateFromKeyStore(credentialSource.keyPairAlias);
 
         String x500Principal = "CN=" + userDisplayName + ", OU=Authenticator Attestation, O=" + rpEntityId + ", C=KR";
         try {
-            generateNewES256KeyPair(credentialSource.keyPairAlias, x500Principal, userDisplayName); // return not captured -- will retrieve credential by alias
+            generateNewES256KeyPair(credentialSource.keyPairAlias, x500Principal); // return not captured -- will retrieve credential by alias
         } catch (NullPointerException e) {
             return null;
         }
@@ -203,21 +208,13 @@ public class CredentialSafe {
      * not accessible.
      * @throws VirgilException
      */
-    public KeyPair getKeyPairByAlias(@NonNull String alias, @NonNull String userId) throws VirgilException {
-        System.out.println("alias : " + alias);
+    public KeyPair getKeyPairByAlias(@NonNull String alias) throws VirgilException {
         try {
-            PrivateKey privateKey = (PrivateKey) keyStore.getKey(alias, null);
+            PrivateKey privateKey = null;
             PublicKey publicKey = null;
+            privateKey = (PrivateKey) keyStore.getKey(alias, null);
             try {
-                if(createMode) {
-                    publicKey = keyStore.getCertificate(alias).getPublicKey();
-                } else {
-                    if(keyStore.getCertificate(userId) != null) {
-                        publicKey = keyStore.getCertificate(userId).getPublicKey();
-                    } else {
-                        publicKey = keyStore.getCertificate(alias).getPublicKey();
-                    }
-                }
+                publicKey = keyStore.getCertificate(alias).getPublicKey();
             } catch (NullPointerException e) {
                 Auth.err_msg = "앱 재설치";
                 return null;
@@ -235,9 +232,8 @@ public class CredentialSafe {
      * @return whether this key requires user verification or not
      * @throws VirgilException
      */
-    @RequiresApi(api = Build.VERSION_CODES.M)
-    public boolean keyRequiresVerification(@NonNull String alias, @NonNull String userId) throws VirgilException {
-        PrivateKey privateKey = getKeyPairByAlias(alias, userId).getPrivate();
+    public boolean keyRequiresVerification(@NonNull String alias) throws VirgilException {
+        PrivateKey privateKey = getKeyPairByAlias(alias).getPrivate();
         KeyFactory factory;
         KeyInfo keyInfo;
 
@@ -326,10 +322,10 @@ public class CredentialSafe {
     }
 
     // doublek
-    public byte[] asCBORForPublicKey(String keyPairAlias) throws VirgilException {
-        Certificate cert = getCertificateFromKeyStore(keyPairAlias);
-        return coseEncodePublicKey(cert.getPublicKey());
-    }
+//    public byte[] asCBORForPublicKey(String keyPairAlias) throws VirgilException {
+//        Certificate cert = getCertificateFromKeyStore(keyPairAlias);
+//        return coseEncodePublicKey(cert.getPublicKey());
+//    }
 
     /**
      * Increment the credential use counter for this credential.
@@ -339,34 +335,6 @@ public class CredentialSafe {
      */
     public int incrementCredentialUseCounter(PublicKeyCredentialSource credential) {
         return db.credentialDao().incrementUseCounter(credential);
-    }
-
-    //
-    // Make Certificate
-    // doublek
-    //
-    public X509Certificate generateSelfSignedCertificate(KeyPair keyPair, byte[] privateKey) throws IOException, OperatorCreationException, CertificateException {
-        AlgorithmIdentifier sigAlgId = new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA"); // don't use SHA1withRSA. It's not secure anymore.
-        AlgorithmIdentifier digAlgId = new DefaultDigestAlgorithmIdentifierFinder().find(sigAlgId);
-        AsymmetricKeyParameter keyParam = PrivateKeyFactory.createKey(privateKey);
-        SubjectPublicKeyInfo spki = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
-        ContentSigner signer = new BcRSAContentSignerBuilder(sigAlgId, digAlgId).build(keyParam);
-        X500Name issuer = new X500Name("CN=OneMoreSecurity, L=Korea");
-        X500Name subject = new X500Name("CN=OMSFIDO2, L=Korea");
-        BigInteger serial = BigInteger.valueOf(1); // Update with unique one if it will be used to identify this certificate
-        Calendar notBefore = Calendar.getInstance();
-        Calendar notAfter = Calendar.getInstance();
-        notAfter.add(Calendar.YEAR, 20); // This certificate is valid for 20 years.
-
-        X509v3CertificateBuilder v3CertGen = new X509v3CertificateBuilder(issuer,
-                serial,
-                notBefore.getTime(),
-                notAfter.getTime(),
-                subject,
-                spki);
-        X509CertificateHolder certificateHolder = v3CertGen.build(signer);
-
-        return new JcaX509CertificateConverter().getCertificate(certificateHolder);
     }
 
     public boolean deleteCertFromKeyStore(@NonNull String alias)

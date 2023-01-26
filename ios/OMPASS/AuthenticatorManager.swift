@@ -386,7 +386,7 @@ class AuthenticatorManager {
     let data = try! JSONSerialization.data(withJSONObject: parameters, options: JSONSerialization.WritingOptions.prettyPrinted)
     let json = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
     if let json = json {
-      print(json)
+      debugPrint(json)
     }
     request.httpBody = json!.data(using: String.Encoding.utf8.rawValue)
     session?.request(request)
@@ -479,16 +479,13 @@ class AuthenticatorManager {
               self.credentialId = responseJson["allowCredentials"][0]["id"].string ?? ""
               self.challenge = responseJson["challenge"].string ?? ""
               
-              print("preAuthenticate | challenge: " + self.challenge)
+              debugPrint("preAuthenticate | challenge: " + self.challenge)
             }
             catch {
-              print("error")
               completion?("CODE001")
             }
             
-            print("success \(data)")
             let result = JSON(value)["isSuccess"]
-            print("preAuth result \(result)")
             completion?(result.string ?? "success")
           }
         case.failure(let error):
@@ -500,48 +497,17 @@ class AuthenticatorManager {
       }
   }
   
-  
-  func tryAuthentication(completion: ((String) -> ())? = nil) {
-    
-    //        setProperties()
-    
-    if challenge.isEmpty {
-      NSLog("error : challenge ")
-      return
-    }
-    
-    
-    if rpId.isEmpty {
-      NSLog("error : rpID ")
-      return
-    }
-    
-    print("tryAuthenticate | challenge: " + self.challenge)
-//    print((rpId.contains("https://") || rpId.contains("www.")) ? rpId : "https://" + rpId)
-    var options = PublicKeyCredentialRequestOptions()
-    options.challenge = challenge
-    options.rpId = rpId + "-" + userName
-    options.userVerification = UserVerificationRequirement.discouraged
-    
+  func authenticationComplete(options: PublicKeyCredentialRequestOptions, completion: ((String) -> ())? = nil, failCompletion: @escaping () -> Void) {
     firstly {
-      
       self.webAuthnClient.get(options)
-      
     }.done { assertion in
-      
       print("==========================================")
       print("credentialId: " + assertion.id)
       print("rawId: " + Base64.encodeBase64URL(assertion.rawId))
       print("authenticatorData: " + Base64.encodeBase64URL(assertion.response.authenticatorData))
       print("signature: " + Base64.encodeBase64URL(assertion.response.signature))
       print("userHandle: " + Base64.encodeBase64URL(assertion.response.userHandle!))
-//      var clientDataJSON = ""
-//      if let dataFromString = assertion.response.clientDataJSON.data(using: .utf8, allowLossyConversion: false) {
-//        var json = try JSON(data: dataFromString)
-//        json["origin"].string = (self.rpId.contains("https://") || self.rpId.contains("www.")) ? self.rpId : "https://" + self.rpId
-//        clientDataJSON = json.rawString()!
-//      }
-//      print("clientDataJSON: " + Base64.encodeBase64URL(clientDataJSON.data(using: .utf8)!))
+
       print("clientDataJSON: " + Base64.encodeBase64URL(assertion.response.clientDataJSON.data(using: .utf8)!))
       print("==========================================")
       
@@ -550,7 +516,6 @@ class AuthenticatorManager {
                                                 signature: Base64.encodeBase64URL(assertion.response.signature),
                                                 userHandle: Base64.encodeBase64URL(assertion.response.userHandle!),
                                                 clientDataJSON: Base64.encodeBase64URL(assertion.response.clientDataJSON.data(using: .utf8)!))
-//      clientDataJSON: Base64.encodeBase64URL(clientDataJSON.data(using: .utf8)!)
       
       if self.session != nil {
         let manager = ServerTrustManager(allHostsMustBeEvaluated: false, evaluators: [self.domain: DisabledTrustEvaluator()])
@@ -574,7 +539,6 @@ class AuthenticatorManager {
       request.httpBody = json!.data(using: String.Encoding.utf8.rawValue)
       self.session?.request(request)
         .responseJSON { response in
-          
           debugPrint("Response: \(response)")
           print(response.response?.allHeaderFields)
           switch response.result {
@@ -597,9 +561,34 @@ class AuthenticatorManager {
       print("==========================================")
       print("error credential: " + error.localizedDescription)
       print("==========================================")
-      completion?("CODE002")
+      failCompletion()
+    }
+  }
+  
+  func tryAuthentication(completion: ((String) -> ())? = nil) {
+    
+    //        setProperties()
+    
+    if challenge.isEmpty {
+      NSLog("error : challenge ")
+      return
     }
     
+    
+    if rpId.isEmpty {
+      NSLog("error : rpID ")
+      return
+    }
+    
+    print("tryAuthenticate | challenge: " + self.challenge)
+//    print((rpId.contains("https://") || rpId.contains("www.")) ? rpId : "https://" + rpId)
+    let options = PublicKeyCredentialRequestOptions(challenge: challenge, rpId: rpId + "-" + userName, userVerification: UserVerificationRequirement.discouraged)
+    authenticationComplete(options: options, completion: completion, failCompletion: {
+      let old_options = PublicKeyCredentialRequestOptions(challenge: self.challenge, rpId: self.rpId, userVerification: UserVerificationRequirement.discouraged)
+      self.authenticationComplete(options: old_options, completion: completion, failCompletion: {
+        completion?("CODE002")
+      })
+    })
   }
   
   

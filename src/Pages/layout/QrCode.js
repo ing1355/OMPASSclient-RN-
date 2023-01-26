@@ -33,7 +33,6 @@ const initQrData = {
 }
 
 const QrCode = (props) => {
-  const [execute, setExecute] = useState(false);
   const [qr_result, setQr_result] = useState(initQrData)
   const [isFocused, setIsFocused] = useState(false);
   const [textView, setTextView] = useState(true)
@@ -80,7 +79,6 @@ const QrCode = (props) => {
           getDataByNonce(url, param, userId, (result) => {
             setQr_result(result);
             props.loadingToggle(false);
-            setExecute(true)
           }, err => {
             console.log(err)
             scanRef.current = false;
@@ -102,15 +100,12 @@ const QrCode = (props) => {
     <>
       <FidoAuthentication
         tempAuthData={qr_result}
-        execute={execute}
-        setExecute={setExecute}
         isQR={true}
         initCallback={() => {
           setQr_result(initQrData)
         }}
         modalCloseCallback={() => {
           scanRef.current = false
-          setExecute(false)
         }}
       />
       <View style={styles.container}>

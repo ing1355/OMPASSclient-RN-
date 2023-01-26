@@ -22,7 +22,6 @@ public class WebAuthn : NSObject {
           ] as Dictionary
           successCallback([result])
         } else {
-          print("state : " + state)
           errorCallback([state])
         }
         debugPrint("end in PreRegitster")

@@ -32,7 +32,6 @@ public class keyChain : NSObject {
   @objc
   func isVerification(_ successCallback: @escaping RCTResponseSenderBlock) {
     let saveSuccessful: String? = KeychainWrapper.standard.string(forKey: "Verification")
-    print("Verification Key Data " + (saveSuccessful ?? ""))
     if saveSuccessful != nil {
       successCallback(["success"])
     } else {
@@ -123,8 +122,6 @@ public class keyChain : NSObject {
   func Security(_ data: String, Auth_name: String, Type: String, successCallback: @escaping RCTResponseSenderBlock, errorCallback: @escaping RCTResponseSenderBlock) {
     if(Type == "등록") {
       let saveSuccessful: Bool = KeychainWrapper.standard.set(data, forKey: Auth_name)
-      print("data : " + data)
-      print(saveSuccessful)
       if(saveSuccessful) {
         successCallback(["success"])
       } else {
@@ -132,8 +129,6 @@ public class keyChain : NSObject {
       }
     } else if(Type == "인증") {
       let read_data: String? = KeychainWrapper.standard.string(forKey: Auth_name)
-      print("data : " + data)
-      print("read data : " + read_data!)
       if(read_data == data) {
         successCallback(["success"])
       } else {

@@ -40,9 +40,10 @@ import { CheckPermission } from '../Components/CheckPermissions';
 import { ENVIRONMENT } from '@env'
 
 const isDev = ENVIRONMENT === 'dev'
+
 const Stack = createStackNavigator();
 
-const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, updateToggle, isForgeryChange, isRootChange, isRoot, isForgery, usbConnected, usbConnectedChange, changeCurrentAuth, auth_all }) => {
+const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, updateToggle, isForgeryChange, isRootChange, isRoot, isForgery, usbConnected, usbConnectedChange, changeCurrentAuth, auth_all, Authentications }) => {
   const [iosType, setIosType] = useState('fingerprint');
   const [serverError, setServerError] = useState(false);
   const [networkError, setNetworkError] = useState(false);
@@ -66,7 +67,9 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
     <Stack.Screen name="Auth_Ing" options={{gestureEnabled: false}} component={Auth_Ing} />
     <Stack.Screen name="Auth_Complete" component={Auth_Complete} />
     <Stack.Screen name="Auth_Fail" component={Auth_Fail} />
-    <Stack.Screen name="Setting" component={Setting} />
+    <Stack.Screen name="Setting" options={{gestureEnabled: Object.keys(Authentications).filter(key => {
+            return Authentications[key]
+        }).length > 1 ? true : false}} component={Setting} />
     <Stack.Screen name="AppSetting" component={AppSetting} />
     <Stack.Screen name="LogsNum" component={LogsNum} />
     <Stack.Screen name="Pin" component={Pin} />

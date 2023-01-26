@@ -424,13 +424,7 @@ public class AuthenticatorManager {
             return;
         }
 
-        try {
-            KeyPair keyPair = this.credentialSafe.getKeyPairByAlias(source.keyPairAlias, source.userDisplayName);
-        } catch (VirgilException e) {
-            e.printStackTrace();
-        }
         Certificate cert = this.credentialSafe.getCertificateFromKeyStore(source.keyPairAlias);
-        PublicKey publicKey = cert.getPublicKey();
 
         String authenticateURL = home + "/fido2/authenticate";
         URL urlAuthenticate = null;

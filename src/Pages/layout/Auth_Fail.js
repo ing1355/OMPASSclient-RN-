@@ -30,10 +30,11 @@ const Auth_Fail = (props) => {
     }, [props.navigation])
 
     function errorHandling(msg) {
-        if (translate(msg).includes('missing')) {
+        const translatedMsg = translate(msg)
+        if (translatedMsg.includes('missing')) {
             return msg;
         } else {
-            return translate(msg);
+            return translatedMsg;
         }
     }
 

@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useLayoutEffect } from 'react';
 import { Text, View, Platform, Image } from 'react-native';
 import { connect } from 'react-redux';
 import { CustomNotification } from '../../Components/CustomAlert';
@@ -11,18 +11,25 @@ import { translate } from '../../../App';
 import { BackHandler } from 'react-native';
 import { AsyncStorageIosTypeKey } from '../../Constans/ContstantValues';
 
-const Setting = ({ auth_all, changeCurrentAuth, route, loadingToggle, navigation, Authentications }) => {
+const Setting = ({ loadingToggle, navigation, Authentications }) => {
     // const [modalOpen, setModalOpen] = useState(false);
     const [notifyOpen, setNotifyOpen] = useState(false);
     const list_title = ['biometrics', 'pin', 'pattern'];
     const [iosType, setIosType] = useState('fingerprint');
+    const authenticationsRef = useRef(Authentications)
+
+    useLayoutEffect(() => {
+        authenticationsRef.current = Authentications
+    },[Authentications])
     
     const handleBackButton = useCallback(() => {
-        if (!Authentications) return true;
+        // console.log(authenticationsRef.current)
+        if (!authenticationsRef.current) return true;
         let count = 0;
-        Object.keys(Authentications).map(key => {
-            if (Authentications[key]) count++;
+        Object.keys(authenticationsRef.current).map(key => {
+            if (authenticationsRef.current[key]) count++;
         })
+        // console.log(authenticationsRef.current, count)
         if (count < 2) return true;
         return false;
     },[])

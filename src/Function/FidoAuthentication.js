@@ -20,8 +20,8 @@ import { changeNotificationToggle } from '../global_store/actions/Notification';
 const isKr = RNLocalize.getLocales()[0].languageCode === 'ko'
 
 const RightMsg = (title, description) => {
-  return <View style={{ flexDirection: 'row', marginBottom: 2.5 }}>
-    <Text style={{ flex: isKr ? 0.5 : .75, top: 1 }}>{translate(title)} </Text>
+  return <View style={{ flexDirection: 'row', marginBottom: 3, alignItems:'center' }}>
+    <Text style={{ flex: isKr ? 0.5 : .75, top: 0}}>{translate(title)} </Text>
     <Text style={{ flex: 2, textAlign: 'left' }} numberOfLines={2} ellipsizeMode="tail">
       {description}
     </Text>
@@ -49,9 +49,10 @@ const initAuthData = {
   applicationName: ''
 }
 
-const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnected, needUpdate, execute, setExecute, loadingToggle, currentAuth, modalCloseCallback, initCallback }) => {
+const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnected, needUpdate, loadingToggle, currentAuth, modalCloseCallback, initCallback }) => {
   const [authData, setAuthData] = useState(initAuthData)
   const { domain, did, redirectUri, username, accessKey, fidoAddress, clientInfo, displayName, procedure, applicationName } = authData;
+  
   const { notificationToggle, appSettings } = useSelector(state => ({
     notificationToggle: state.notificationToggle,
     appSettings: state.appSettings
@@ -225,9 +226,9 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
   }
 
   useLayoutEffect(() => {
-    if (isForgery.isChecked && isRoot.isChecked && usbConnected.isChecked && needUpdate.isChecked && !(isForgery.isForgery || isRoot.isRoot || usbConnected.usbConnected || needUpdate.needUpdate)) {
+    if (tempAuthData.accessKey && isForgery.isChecked && isRoot.isChecked && usbConnected.isChecked && needUpdate.isChecked && !(isForgery.isForgery || isRoot.isRoot || usbConnected.usbConnected || needUpdate.needUpdate)) {
       const withAuthCheck = async () => {
-        if (execute && await check_auth_info()) {
+        if (await check_auth_info()) {
           // if (execute && true) {
           if (notificationToggle) dispatch(changeNotificationToggle(false))
           if(accessKey !== tempAuthData.accessKey) {
@@ -242,7 +243,7 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
               }
             }, 150);
           }
-          if (procedure === 'auth') {
+          if (tempAuthData.procedure === 'auth') {
             const preFunc = async () => {
               await notifee.setBadgeCount(0)
               await AsyncStorage.removeItem(AsyncStoragePushDataKey)
@@ -273,11 +274,10 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
             //   });
           }
         }
-        setExecute(false)
       }
       withAuthCheck()
     }
-  }, [isForgery, isRoot, usbConnected, needUpdate, authData, execute])
+  }, [isForgery, isRoot, usbConnected, needUpdate, tempAuthData])
 
   useEffect(() => {
     if (authData.accessKey) {
