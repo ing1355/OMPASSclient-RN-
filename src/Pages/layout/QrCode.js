@@ -8,6 +8,15 @@ import { translate } from '../../../App';
 import FidoAuthentication from '../../Function/FidoAuthentication';
 import { CameraScreen } from 'react-native-camera-kit';
 import { getDataByNonce } from '../../Function/GlobalFunction';
+import { Camera, useCameraDevices, useFrameProcessor } from 'react-native-vision-camera';
+import { BarcodeFormat, scanBarcodes } from 'vision-camera-code-scanner';
+import Reanimated, { useSharedValue, useAnimatedProps, runOnJS } from 'react-native-reanimated';
+import { zoomInput } from '../Home';
+
+const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera)
+Reanimated.addWhitelistedNativeProps({
+  zoom: true,
+})
 
 const animationTime = 3000
 
@@ -40,8 +49,23 @@ const QrCode = (props) => {
   const qrAnimationStyles = {
     transform: [{ scale: qrAnimation }],
   }
+  const zoom = useSharedValue(zoomInput * 1)
+  const animatedProps = useAnimatedProps(
+    () => ({ zoom: zoom.value }),
+    [zoom]
+  )
   const scanRef = useRef(false);
-
+  const ultra_devices = useCameraDevices('ultra-wide-angle-camera')
+  const devices = useCameraDevices('wide-angle-camera')
+  const device = ultra_devices.back || devices.back
+  const frameProcessor = useFrameProcessor((frame) => {
+    'worklet';
+    const detectedBarcodes = scanBarcodes(frame, [BarcodeFormat.QR_CODE]);
+    if(detectedBarcodes[0]) {
+      runOnJS(onSuccess)(detectedBarcodes[0].content.data);
+    }
+  }, []);
+  
   useEffect(() => {
     const unsubscribe = props.navigation.addListener('focus', async () => {
       setIsFocused(true);
@@ -65,12 +89,13 @@ const QrCode = (props) => {
     };
   }, [props.navigation]);
 
-  async function onSuccess(e) {
-    if (!scanRef.current) {
+  async function onSuccess(qrData) {
+    if (!scanRef.current && qrData) {
       scanRef.current = true;
-      const qrData = e.nativeEvent.codeStringValue;
+      // const qrData = e.nativeEvent.codeStringValue;
       if (isJson(qrData)) {
-        const { url, param, userId } = JSON.parse(e.nativeEvent.codeStringValue);
+        // const { url, param, userId } = JSON.parse(e.nativeEvent.codeStringValue);
+        const { url, param, userId } = JSON.parse(qrData);
         if (!url && !param) {
           scanRef.current = false;
           return;
@@ -160,7 +185,18 @@ const QrCode = (props) => {
         </View>
         {isFocused && (
           <View style={{ position: 'absolute', zIndex: 1, width: '100%', height: '100%' }}>
-            <CameraScreen onReadCode={onSuccess} scanBarcode ratioOverlay="1:1" hideControls={true}/>
+            { device && <ReanimatedCamera
+              style={{
+                width:'100%',
+                height:'100%'
+              }}
+              animatedProps={animatedProps}
+              frameProcessorFps={5}
+              frameProcessor={frameProcessor}
+              device={device}
+              isActive={true}
+            />}
+            {/* <CameraScreen onReadCode={onSuccess} scanBarcode ratioOverlay="1:1" hideControls={true}/> */}
           </View>
         )}
       </View>

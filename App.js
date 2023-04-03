@@ -168,7 +168,7 @@ const App = (props) => {
       params[match[1]] = match[2]
     }
     const type = params.url.includes('auth') ? 'OMPASSAuth' : 'OMPASSRegist'
-
+    
     getDataByNonce(params.url, params.nonce, params.userId, (data) => {
       if (data.error) {
         Vibration.vibrate()

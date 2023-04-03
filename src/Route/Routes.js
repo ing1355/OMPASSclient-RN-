@@ -40,6 +40,7 @@ import { CheckPermission } from '../Components/CheckPermissions';
 import { ENVIRONMENT } from '@env'
 
 const isDev = ENVIRONMENT === 'dev'
+console.log('isDev ? : ',isDev)
 
 const Stack = createStackNavigator();
 
@@ -126,7 +127,7 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
   const checkForgeryFunc = async () => {
     if ((await NetInfo.fetch()).isConnected) {
       NativeModules.checkForgery.isForgery(data => {
-        const { hash, version } = isDev ? { hash: true, version: true } : (Platform.OS === 'android' ? JSON.parse(data) : data)
+        const { hash, version } = isDev ? { hash: true, version: false } : (Platform.OS === 'android' ? JSON.parse(data) : data)
         if (hash) {
           isForgeryChange({
             isChecked: true,

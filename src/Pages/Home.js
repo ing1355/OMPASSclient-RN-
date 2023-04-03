@@ -10,7 +10,8 @@ import {
   ToastAndroid,
   Dimensions,
   Animated,
-  NativeModules
+  NativeModules,
+  TextInput
 } from 'react-native';
 import styles from '../styles/Home';
 import { connect } from 'react-redux';
@@ -26,6 +27,8 @@ import CustomButton from '../Components/CustomButton';
 import * as RootNavigation from '../Route/Router'
 let { height } = Dimensions.get('window');
 let clickButton = false
+
+export let zoomInput = '0'
 
 const Home = ({
   route,
@@ -43,8 +46,10 @@ const Home = ({
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [notifyOpen_3, setNotifyOpen_3] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [zoomValue, setZoomValue] = useState(zoomInput)
   const menuOpenRef = useRef(null)
 
+  
   let backClickCount = 0;
   const backClickRef = useRef(backClickCount);
   let springValue = new Animated.Value(100);
@@ -60,6 +65,10 @@ const Home = ({
     }]
   }
 
+  useLayoutEffect(() => {
+    if(zoomInput !== zoomValue) zoomInput = zoomValue
+  },[zoomValue])
+  
   async function check_auth_info() {
     const auth_info = await AsyncStorage.getItem(AsyncStorageAuthenticationsKey);
     const currentAuth = await AsyncStorage.getItem(AsyncStorageCurrentAuthKey);
@@ -226,6 +235,9 @@ const Home = ({
                 return setNotifyOpen_3(true);
               }
               navigation.navigate('QrCode');
+              // navigation.navigate('QrCode', {
+              //   zoomValue
+              // });
             }
           }}>
           <Animated.View style={[styles.qr_tooltip, tooltipAnimationStyles]}>
@@ -241,7 +253,11 @@ const Home = ({
             />
           </Animated.View>
         </Pressable>
-        <View style={{ flex: 1 }} />
+        {/* <View style={{ flex: 1 }}>
+          <TextInput style={{width: 100, backgroundColor:'white', textAlign:'center', alignSelf:'center'}} value={zoomValue} onChangeText={e => {
+            setZoomValue(e)
+          }}/>
+        </View> */}
       </ImageBackground>
       <CustomNotification
         title={translate('notCameraPermission')}
