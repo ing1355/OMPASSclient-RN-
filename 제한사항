@@ -1,0 +1,15 @@
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+react-native-vision-camera
+node-modules 안에 android/gradle.properties 코틀린 버전 1.6.20으로 수정
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+vision-camera-code-scanner
+node-modules 안에서
+android/build.gradle 60라인 mlkit 의존성 17.0.2 버전으로 변경
+
+android/src/BarcodeConverter에서 10라인 vision.barcode.Barcode -> vision.barcode.common.Barcode
+android/src/VisionCameraCodeScannerPlugin에서 27라인 위와 마찬가지로 common 중간에 삽입
+https://github.com/alexstanbury/vision-camera-code-scanner/commit/727268d44d2eb529e772fd8cf04e8ff98c02971f
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------

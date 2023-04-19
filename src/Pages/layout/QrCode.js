@@ -7,9 +7,9 @@ import * as RootNavigation from '../../Route/Router';
 import { translate } from '../../../App';
 import FidoAuthentication from '../../Function/FidoAuthentication';
 import { CameraScreen } from 'react-native-camera-kit';
-import { getDataByNonce } from '../../Function/GlobalFunction';
+import { getDataByNonce, isJson } from '../../Function/GlobalFunction';
 import { Camera, useCameraDevices, useFrameProcessor } from 'react-native-vision-camera';
-import { BarcodeFormat, scanBarcodes } from 'vision-camera-code-scanner';
+import { BarcodeFormat, scanBarcodes, useScanBarcodes } from 'vision-camera-code-scanner';
 import Reanimated, { useSharedValue, useAnimatedProps, runOnJS } from 'react-native-reanimated';
 import { zoomInput } from '../Home';
 
@@ -19,15 +19,6 @@ Reanimated.addWhitelistedNativeProps({
 })
 
 const animationTime = 3000
-
-function isJson(str) {
-  try {
-    JSON.parse(str);
-  } catch (e) {
-    return false;
-  }
-  return true;
-}
 
 const initQrData = {
   clientInfo: {
@@ -42,6 +33,7 @@ const initQrData = {
 }
 
 const QrCode = (props) => {
+  const [hasPermission, setHasPermission] = useState(false);
   const [qr_result, setQr_result] = useState(initQrData)
   const [isFocused, setIsFocused] = useState(false);
   const [textView, setTextView] = useState(true)
@@ -54,20 +46,37 @@ const QrCode = (props) => {
     () => ({ zoom: zoom.value }),
     [zoom]
   )
+
   const scanRef = useRef(false);
   const ultra_devices = useCameraDevices('ultra-wide-angle-camera')
   const devices = useCameraDevices('wide-angle-camera')
-  const device = ultra_devices.back || devices.back
-  const frameProcessor = useFrameProcessor((frame) => {
-    'worklet';
-    const detectedBarcodes = scanBarcodes(frame, [BarcodeFormat.QR_CODE]);
-    if(detectedBarcodes[0]) {
-      runOnJS(onSuccess)(detectedBarcodes[0].content.data);
-    }
-  }, []);
+  const _devices = useCameraDevices()
+  const device = _devices.back || ultra_devices.back || devices.back
+
+  const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.QR_CODE], {
+    checkInverted: true,
+  });
+
+  // const frameProcessor = useFrameProcessor((frame) => {
+  //   'worklet';
+  //   const detectedBarcodes = scanBarcodes(frame, [BarcodeFormat.QR_CODE], {checkInverted: true});
+  //   if(detectedBarcodes[0]) {
+  //     console.log('detected')
+  //     console.log(detectedBarcodes[0])
+  //     runOnJS(onSuccess)(detectedBarcodes[0].content.data);
+  //   } else {
+  //     console.log('no detected')
+  //   }
+  // }, []);
+
+  useEffect(() => {
+    if(barcodes.length) onSuccess(barcodes[0].content.data)
+  },[barcodes])
   
   useEffect(() => {
     const unsubscribe = props.navigation.addListener('focus', async () => {
+      const status = await Camera.requestCameraPermission();
+      setHasPermission(status === 'authorized');
       setIsFocused(true);
       props.loadingToggle(false);
       setTimeout(() => {
@@ -185,7 +194,7 @@ const QrCode = (props) => {
         </View>
         {isFocused && (
           <View style={{ position: 'absolute', zIndex: 1, width: '100%', height: '100%' }}>
-            { device && <ReanimatedCamera
+            { device && hasPermission && <ReanimatedCamera
               style={{
                 width:'100%',
                 height:'100%'

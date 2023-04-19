@@ -253,11 +253,11 @@ const Home = ({
             />
           </Animated.View>
         </Pressable>
-        {/* <View style={{ flex: 1 }}>
-          <TextInput style={{width: 100, backgroundColor:'white', textAlign:'center', alignSelf:'center'}} value={zoomValue} onChangeText={e => {
+        <View style={{ flex: 1 }}>
+          {/* <TextInput style={{width: 100, backgroundColor:'white', textAlign:'center', alignSelf:'center'}} value={zoomValue} onChangeText={e => {
             setZoomValue(e)
-          }}/>
-        </View> */}
+          }}/> */}
+        </View>
       </ImageBackground>
       <CustomNotification
         title={translate('notCameraPermission')}

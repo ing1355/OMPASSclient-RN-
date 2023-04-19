@@ -383,7 +383,13 @@ public class AuthenticatorManager {
         }
 
         byte[] credentialId = null;
-        credentialId = attObjForAuthenticate.getCredentialId();
+        try {
+            credentialId = attObjForAuthenticate.getCredentialId();
+        } catch(NullPointerException e) {
+            e.printStackTrace();
+            Auth.err_msg = "CODE004";
+            return;
+        }
         // Now let's see if we can generate an assertion based on the returned credential ID
         AuthenticatorGetAssertionOptions getAssertionOptions = AuthenticatorGetAssertionOptions.fromJSON(assertionJson);
         getAssertionOptions.allowCredentialDescriptorList.add(new PublicKeyCredentialDescriptor("public-key", credentialId, null));

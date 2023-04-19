@@ -132,3 +132,12 @@ export const getDataByNonce = (url, nonce, userId, successCallback, errorCallbac
             if (errorCallback) errorCallback(err.message)
         });
 }
+
+export function isJson(str) {
+    try {
+      if (!JSON.parse(str)) return false;
+    } catch (e) {
+      return false;
+    }
+    return true;
+  }
