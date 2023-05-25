@@ -24,9 +24,9 @@ export default function LocalAuthenticate(type, AuthenticateCallback) {
   }
 }
 
-export async function local_auth(routeParams) {
+export async function local_auth(isOtp) {
   const params = () => {
-    RootNavigation.replace('Setting', routeParams);
+    RootNavigation.replace(isOtp ? 'OTP' : 'Setting');
   };
   LocalAuthenticate(await AsyncStorage.getItem(AsyncStorageCurrentAuthKey), params);
 }

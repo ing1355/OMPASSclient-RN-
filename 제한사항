@@ -13,3 +13,16 @@ android/src/VisionCameraCodeScannerPlugin에서 27라인 위와 마찬가지로 
 https://github.com/alexstanbury/vision-camera-code-scanner/commit/727268d44d2eb529e772fd8cf04e8ff98c02971f
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+/Users/hozzi/Desktop/Front_RN/FIDO2_Client/ios/build/generated/ios/FBReactNativeSpec/FBReactNativeSpec.h:2216:46 'value' is unavailable: introduced in iOS 12.0
+
+podfile
+installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.4'
+      end
+    end
+    추가
+
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------

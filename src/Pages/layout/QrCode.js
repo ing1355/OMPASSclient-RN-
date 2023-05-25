@@ -11,7 +11,6 @@ import { getDataByNonce, isJson } from '../../Function/GlobalFunction';
 import { Camera, useCameraDevices, useFrameProcessor } from 'react-native-vision-camera';
 import { BarcodeFormat, scanBarcodes, useScanBarcodes } from 'vision-camera-code-scanner';
 import Reanimated, { useSharedValue, useAnimatedProps, runOnJS } from 'react-native-reanimated';
-import { zoomInput } from '../Home';
 
 const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera)
 Reanimated.addWhitelistedNativeProps({
@@ -41,7 +40,7 @@ const QrCode = (props) => {
   const qrAnimationStyles = {
     transform: [{ scale: qrAnimation }],
   }
-  const zoom = useSharedValue(zoomInput * 1)
+  const zoom = useSharedValue(1.1)
   const animatedProps = useAnimatedProps(
     () => ({ zoom: zoom.value }),
     [zoom]
@@ -111,6 +110,7 @@ const QrCode = (props) => {
         } else {
           props.loadingToggle(true);
           getDataByNonce(url, param, userId, (result) => {
+            console.log(result)
             setQr_result(result);
             props.loadingToggle(false);
           }, err => {
@@ -129,7 +129,7 @@ const QrCode = (props) => {
       }
     }
   }
-
+  
   return (
     <>
       <FidoAuthentication

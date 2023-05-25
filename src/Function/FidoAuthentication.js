@@ -284,7 +284,7 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
       callbackFunc();
     }
   }, [authData])
-
+  
   return <CustomConfirmModal
     title={translate('confirmUserTitle', { type: procedure === 'reg' ? (isKr ? '등록' : 'Registration') : (isKr ? '인증' : 'Authentication') })}
     onShow={async () => {
@@ -296,8 +296,8 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
       <>
         {RightMsg('authFirstItemTitle', tempAuthData.applicationName)}
         {RightMsg('authSecondItemTitle', tempAuthData.username)}
-        {RightMsg('authThirdItemTitle', tempAuthData.clientInfo.ip)}
-        {RightMsg('authFourthItemTitle', tempAuthData.clientInfo.location)}
+        {RightMsg('authThirdItemTitle', tempAuthData.clientInfo && tempAuthData.clientInfo.ip)}
+        {RightMsg('authFourthItemTitle', tempAuthData.clientInfo && tempAuthData.clientInfo.location)}
         <Text style={{ textAlign: 'center', marginTop: 8 }}>
           {translate('confirmUserDescription') + '\n'}
         </Text>

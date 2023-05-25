@@ -510,7 +510,7 @@ class AuthenticatorManager {
 
       print("clientDataJSON: " + Base64.encodeBase64URL(assertion.response.clientDataJSON.data(using: .utf8)!))
       print("==========================================")
-      
+
       let urlString = self.url + "/fido2/authenticate"
       let parameters = self.getAuthenDataToJSON(authenticatorData: Base64.encodeBase64URL(assertion.response.authenticatorData),
                                                 signature: Base64.encodeBase64URL(assertion.response.signature),

@@ -15,13 +15,14 @@ import {
   Fingerprint,
   Face,
   AppSetting,
-  LogsNum
+  LogsNum,
+  OTP
 } from '../Pages';
 import { createStackNavigator } from '@react-navigation/stack';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import ActionCreators from '../global_store/actions';
 import { CustomConfirmModal, CustomNotification } from '../Components/CustomAlert';
-import { Text, Platform, NativeModules, Animated, BackHandler, ToastAndroid, Dimensions, DeviceEventEmitter } from 'react-native';
+import { Text, Platform, NativeModules, DeviceEventEmitter } from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { translate } from '../../App';
@@ -68,6 +69,7 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
     <Stack.Screen name="Auth_Ing" options={{gestureEnabled: false}} component={Auth_Ing} />
     <Stack.Screen name="Auth_Complete" component={Auth_Complete} />
     <Stack.Screen name="Auth_Fail" component={Auth_Fail} />
+    <Stack.Screen name="OTP" component={OTP} />
     <Stack.Screen name="Setting" options={{gestureEnabled: Object.keys(Authentications).filter(key => {
             return Authentications[key]
         }).length > 1 ? true : false}} component={Setting} />
@@ -123,11 +125,11 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
       setFirstSetting(true)
     }
   }
-
+  
   const checkForgeryFunc = async () => {
     if ((await NetInfo.fetch()).isConnected) {
       NativeModules.checkForgery.isForgery(data => {
-        const { hash, version } = isDev ? { hash: true, version: false } : (Platform.OS === 'android' ? JSON.parse(data) : data)
+        const { hash, version } = isDev ? { hash: true, version: true } : (Platform.OS === 'android' ? JSON.parse(data) : data)
         if (hash) {
           isForgeryChange({
             isChecked: true,

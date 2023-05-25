@@ -32,6 +32,7 @@
   "GoToSetting": "Switch to authentication type\nsettings screen",
   "AppSetting": "App Settings",
   "ExitAfterAuthComplete": "Close the app when auth is complete",
+  "OTP_MENU_TITLE": "OTP Generate",
   "RegistrationInformation": "Activity Logs",
   "HelpTitle": "Help",
   "reset": "Reset",

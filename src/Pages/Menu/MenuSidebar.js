@@ -135,6 +135,23 @@ const MenuSidebar = ({ opened, toggle }) => {
             style={styles.menu_button}
             onPress={() => {
               toggle();
+              local_auth(true);
+            }}>
+            <View style={styles.menu_item}>
+              <Image
+                source={require('../../assets/registerationInfo.png')}
+                resizeMode="contain"
+                style={styles.menu_item_icon}
+              />
+              <Text style={styles.menu_item_text}>
+                {translate('OTP_MENU_TITLE')}
+              </Text>
+            </View>
+          </CustomOpacityButton>
+          <CustomOpacityButton
+            style={styles.menu_button}
+            onPress={() => {
+              toggle();
               RootNavigation.navigate('AppSetting');
             }}>
             <View style={styles.menu_item}>

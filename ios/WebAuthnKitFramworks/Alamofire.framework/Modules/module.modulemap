@@ -4,3 +4,8 @@ framework module Alamofire {
   export *
   module * { export * }
 }
+
+module Alamofire.Swift {
+  header "Alamofire-Swift.h"
+  requires objc
+}

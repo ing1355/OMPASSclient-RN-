@@ -81,12 +81,7 @@ const Logs = (props) => {
             <Title
                 title={translate('RegistrationInformation')}
                 x
-                fontStyle={{
-                    textAlign: 'center',
-                    fontFamily: 'NotoSans-Bold',
-                    fontWeight: 'bold',
-                    letterSpacing: -1
-                }} />
+            />
             <View style={{ flex: 1, paddingHorizontal: '5%', backgroundColor: 'white', paddingVertical: 15 }}>
                 {list_data.length > 0 ?
                     <ScrollView style={styles.container}>

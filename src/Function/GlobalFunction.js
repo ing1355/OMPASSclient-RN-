@@ -26,7 +26,6 @@ export const saveAuthLogByResult = async (type, result, authData) => {
     if (!logs.find(log => log.domain === domain)) {
         logs = logs.concat({
             domain,
-            icon: "",
             datas: [
                 {
                     username,

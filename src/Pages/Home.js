@@ -10,8 +10,7 @@ import {
   ToastAndroid,
   Dimensions,
   Animated,
-  NativeModules,
-  TextInput
+  NativeModules
 } from 'react-native';
 import styles from '../styles/Home';
 import { connect } from 'react-redux';
@@ -27,8 +26,6 @@ import CustomButton from '../Components/CustomButton';
 import * as RootNavigation from '../Route/Router'
 let { height } = Dimensions.get('window');
 let clickButton = false
-
-export let zoomInput = '0'
 
 const Home = ({
   route,
@@ -46,7 +43,7 @@ const Home = ({
   const [notifyOpen, setNotifyOpen] = useState(false);
   const [notifyOpen_3, setNotifyOpen_3] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [zoomValue, setZoomValue] = useState(zoomInput)
+  // const [zoomValue, setZoomValue] = useState(zoomInput)
   const menuOpenRef = useRef(null)
 
   
@@ -65,9 +62,9 @@ const Home = ({
     }]
   }
 
-  useLayoutEffect(() => {
-    if(zoomInput !== zoomValue) zoomInput = zoomValue
-  },[zoomValue])
+  // useLayoutEffect(() => {
+  //   if(zoomInput !== zoomValue) zoomInput = zoomValue
+  // },[zoomValue])
   
   async function check_auth_info() {
     const auth_info = await AsyncStorage.getItem(AsyncStorageAuthenticationsKey);

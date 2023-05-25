@@ -12,3 +12,4 @@ export { default as Fingerprint } from './layout/Fingerprint';
 export { default as Face } from './layout/Face';
 export { default as AppSetting } from './layout/AppSetting';
 export { default as LogsNum } from './layout/LogsNum';
+export { default as OTP } from './layout/OTP';

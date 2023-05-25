@@ -4,8 +4,6 @@ import { Animated, Pressable, Platform, Easing } from 'react-native'
 const animationDuration = Platform.OS === 'android' ? 200 : 1
 
 const CustomOpacityButton = ({ style, onPress, children, disabled }) => {
-    const clicked = useRef(false)
-    const animationFinished = useRef(false)
     const animation = useRef(new Animated.Value(0)).current;
     const animationStyle = {
         opacity: animation.interpolate({
@@ -48,7 +46,7 @@ const CustomOpacityButton = ({ style, onPress, children, disabled }) => {
             backgroundColor: 'rgba(192,192,192,.4)',
             width: '100%',
             height: '100%',
-            position: 'absolute',
+            position: 'absolute'
         }]} />
     </Pressable>
 }

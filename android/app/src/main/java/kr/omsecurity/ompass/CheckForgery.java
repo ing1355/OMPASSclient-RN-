@@ -3,6 +3,8 @@ package kr.omsecurity.ompass;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -53,10 +55,9 @@ public class CheckForgery extends ReactContextBaseJavaModule {
             } else {
                 installer = pm.getInstallerPackageName(packageName);
             }
-            if (installer != null && installer.startsWith("com.android.vending")) {
+//            if (installer != null && installer.startsWith("com.android.vending")) {
+            if (true) {
                 URL urlAuthenticate = new URL("https://admin-api.ompasscloud.com/oms/app-verification/os/android/version/" + BuildConfig.VERSION_NAME);
-//                    URL urlAuthenticate = new URL("https://ompass.kr:8800/oms/app-verification/os/android/version/" + BuildConfig.VERSION_NAME);
-//                    URL urlAuthenticate = new URL("https://192.168.182.77:9000/oms/app-verification/os/android/version/" + BuildConfig.VERSION_NAME);
                 HttpsURLConnection conCheckForgery = null;
                 conCheckForgery = (HttpsURLConnection) urlAuthenticate.openConnection();
                 conCheckForgery.setSSLSocketFactory(insertCAContext(R.raw.thawte_rsa_ca_2018, reactContext).getSocketFactory());
@@ -75,6 +76,8 @@ public class CheckForgery extends ReactContextBaseJavaModule {
                     JSONObject json = new JSONObject(response.toString());
                     JSONObject return_json = json.getJSONObject("data");
                     return_json.put("hash", true);
+                    System.out.println("json response : " + response.toString());
+                    System.out.println("json response : " + return_json.toString());
                     successCallback.invoke(return_json.toString());
                 } catch (FileNotFoundException | SSLHandshakeException | ConnectException e) {
                     e.printStackTrace();
