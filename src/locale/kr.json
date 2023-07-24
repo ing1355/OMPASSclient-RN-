@@ -200,5 +200,6 @@
     "authFirstItemTitle": "서비스",
     "authSecondItemTitle": "아이디",
     "authThirdItemTitle": "IP",
-    "authFourthItemTitle": "위치"
+    "authFourthItemTitle": "위치",
+    "NoOTPData": "등록된 계정 정보가 존재하지 않습니다"
 }

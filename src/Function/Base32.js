@@ -1,13 +1,31 @@
-const base32Alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-const paddingChar = '=';
-
 export function Base32Encode(input) {
+  const base32Alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  const paddingChar = '=';
+
+  // Convert UTF-8 string to byte array
+  const utf8Bytes = [];
+  
+  for (let i = 0; i < input.length; i++) {
+    const charCode = input.charCodeAt(i);
+    if (charCode < 128) {
+      utf8Bytes.push(charCode);
+    } else if (charCode < 2048) {
+      utf8Bytes.push((charCode >> 6) | 192);
+      utf8Bytes.push((charCode & 63) | 128);
+    } else {
+      utf8Bytes.push((charCode >> 12) | 224);
+      utf8Bytes.push(((charCode >> 6) & 63) | 128);
+      utf8Bytes.push((charCode & 63) | 128);
+    }
+  }
+
+  // Base32 encode byte array
   let output = '';
   let bits = 0;
   let value = 0;
 
-  for (let i = 0; i < input.length; i++) {
-    value = (value << 8) | input[i];
+  for (let i = 0; i < utf8Bytes.length; i++) {
+    value = (value << 8) | utf8Bytes[i];
     bits += 8;
 
     while (bits >= 5) {

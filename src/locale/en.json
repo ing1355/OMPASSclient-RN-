@@ -200,5 +200,6 @@
   "authFirstItemTitle": "Service",
   "authSecondItemTitle": "Username",
   "authThirdItemTitle": "IP",
-  "authFourthItemTitle": "Location"
+  "authFourthItemTitle": "Location",
+  "NoOTPData": "Registered account information\ndoes not exist"
 }

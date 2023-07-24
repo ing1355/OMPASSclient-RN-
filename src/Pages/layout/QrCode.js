@@ -104,6 +104,7 @@ const QrCode = (props) => {
       if (isJson(qrData)) {
         // const { url, param, userId } = JSON.parse(e.nativeEvent.codeStringValue);
         const { url, param, userId } = JSON.parse(qrData);
+        console.log(qrData)
         if (!url && !param) {
           scanRef.current = false;
           return;
