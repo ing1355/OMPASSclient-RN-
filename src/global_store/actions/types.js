@@ -13,6 +13,7 @@ const types = {
     usbConnectedChange : 'USBCONNECTEDCHANGE',
     isRootChange : 'ISROOTCHANGE',
     firstSettingToggle: 'FIRSTSETTINGTOGGLE',
-    settingChange: 'SETTINGCHANGE'
+    settingChange: 'SETTINGCHANGE',
+    isDeprecatedChange: 'ISDEPRECATEDCHANGE'
 }
 export default types;

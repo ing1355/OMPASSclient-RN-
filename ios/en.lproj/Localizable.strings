@@ -1,2 +1,2 @@
-"notification_title_string" = "OMPASS Authentication Notification";
-"notification_message_string" = "After running the OMPASS app, please proceed with authentication.";
+notification_title_string = "OMPASS Authentication From %@";
+notification_message_string = "Login request for %@";

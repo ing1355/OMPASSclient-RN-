@@ -56,6 +56,8 @@ public class Auth extends ReactContextBaseJavaModule {
             e.printStackTrace();
         }
 
+
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.P)

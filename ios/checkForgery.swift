@@ -38,6 +38,7 @@ public class checkForgery : NSObject {
               let responseJson = JSON(json["data"])
               let result: [String: Any] = [
                 "version" : responseJson["version"].boolValue,
+                "deprecated" : responseJson["deprecated"].boolValue,
                 "hash": true
               ] as Dictionary
               successCallback([result])

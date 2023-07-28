@@ -6,8 +6,8 @@ const getTimeDoubleFormat = time => {
     return time >= 10 ? time : '0' + time
 }
 
-export const getCurrentFullDateTime = () => {
-    const fullDate = new Date()
+export const getCurrentFullDateTime = (_date) => {
+    const fullDate = _date ? new Date(_date) : new Date()
     const year = fullDate.getFullYear();
     const month = fullDate.getMonth() + 1;
     const date = fullDate.getDate();
@@ -22,14 +22,16 @@ export const saveAuthLogByResult = async (type, result, authData) => {
     let logs = JSON.parse(await AsyncStorage.getItem(AsyncStorageLogKey))
     let logsNum = JSON.parse(await AsyncStorage.getItem(AsyncStorageAppSettingKey)).logsNum
     const { domain, username, clientInfo } = authData || {};
-    const { browser, gpu, os, osVersion } = clientInfo
+    const { browser, gpu, os, osVersion, alias, uuid } = clientInfo || {}
     if (!logs.find(log => log.domain === domain)) {
         logs = logs.concat({
             domain,
             datas: [
                 {
-                    username,
-                    OS: os + ' ' + osVersion,
+                    username: username,
+                    alias,
+                    uuid,
+                    OS: (os || osVersion) && (os + ' ' + osVersion),
                     Browser: browser,
                     GPU: gpu,
                     logs: [
@@ -45,16 +47,18 @@ export const saveAuthLogByResult = async (type, result, authData) => {
     } else {
         logs = logs.map(log => {
             if (log.domain === domain) {
-                if (log.datas.find(_data => _data.username === username)) {
+                if (log.datas.find(_data => alias ? (_data.alias === alias) : (_data.username === username && !_data.alias))) {
                     return {
                         ...log,
                         datas: log.datas.map(data => {
-                            if (data.username === username) {
+                            if (alias ? (data.alias === alias) : (data.username === username && !data.alias)) {
                                 return {
-                                    username,
+                                    username: username,
+                                    alias,
+                                    uuid,
                                     Browser: browser,
                                     GPU: gpu,
-                                    OS: os + ' ' + osVersion,
+                                    OS: (os || osVersion) && (os + ' ' + osVersion),
                                     logs: [
                                         {
                                             createdAt: getCurrentFullDateTime(),
@@ -72,10 +76,12 @@ export const saveAuthLogByResult = async (type, result, authData) => {
                     return {
                         ...log,
                         datas: log.datas.concat({
-                            username,
+                            username: username,
+                            alias,
+                            uuid,
                             Browser: browser,
                             GPU: gpu,
-                            OS: os + ' ' + osVersion,
+                            OS: (os || osVersion) && (os + ' ' + osVersion),
                             logs: [
                                 {
                                     createdAt: getCurrentFullDateTime(),
@@ -120,6 +126,7 @@ export const getDataByNonce = (url, nonce, userId, successCallback, errorCallbac
                     if(_data.error) {
                         if (errorCallback) errorCallback(_data.error)
                     } else {
+                        console.log('nonce data : ', _data)
                         successCallback(_data)
                     }
                 } catch (e) {

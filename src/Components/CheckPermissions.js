@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions';
-import notifee from '@notifee/react-native';
+// import notifee from '@notifee/react-native';
 
 export const CheckPermission = async (props) => {
     if (props === 'All') {
@@ -12,7 +12,7 @@ export const CheckPermission = async (props) => {
                 await request(PERMISSIONS.ANDROID.POST_NOTIFICATIONS);
             }
         } else if (Platform.OS === 'ios') {
-            await notifee.requestPermission()
+            // await notifee.requestPermission()
             if (await check(PERMISSIONS.IOS.CAMERA) !== RESULTS.GRANTED) {
                 await request(PERMISSIONS.IOS.CAMERA);
             }

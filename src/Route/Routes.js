@@ -22,7 +22,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import ActionCreators from '../global_store/actions';
 import { CustomConfirmModal, CustomNotification } from '../Components/CustomAlert';
-import { Text, Platform, NativeModules, DeviceEventEmitter } from 'react-native';
+import { Text, Platform, NativeModules, DeviceEventEmitter, AppState } from 'react-native';
 import SplashScreen from 'react-native-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { translate } from '../../App';
@@ -41,11 +41,10 @@ import { CheckPermission } from '../Components/CheckPermissions';
 import { ENVIRONMENT } from '@env'
 
 const isDev = ENVIRONMENT === 'dev'
-console.log('isDev ? : ',isDev)
-
+console.log('isdev : ', isDev)
 const Stack = createStackNavigator();
 
-const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, updateToggle, isForgeryChange, isRootChange, isRoot, isForgery, usbConnected, usbConnectedChange, changeCurrentAuth, auth_all, Authentications }) => {
+const Routes = ({ isDeprecated, isDeprecatedChange, firstSetting, setFirstSetting, iosTypeToggle, needUpdate, updateToggle, isForgeryChange, isRootChange, isRoot, isForgery, usbConnected, usbConnectedChange, changeCurrentAuth, auth_all, Authentications }) => {
   const [iosType, setIosType] = useState('fingerprint');
   const [serverError, setServerError] = useState(false);
   const [networkError, setNetworkError] = useState(false);
@@ -58,6 +57,16 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
   const dispatch = useDispatch()
   // const netInfo = useNetInfo();
 
+  const LinkToStore = () => {
+    if (Platform.OS === 'android') Linking.openURL("market://details?id=kr.omsecurity.ompass")
+    else {
+      const i18n = new I18n()
+      const locale = i18n.locale || i18n.defaultLocale
+      if (locale === 'ko') Linking.openURL("https://apps.apple.com/kr/app/%EC%9B%90%EB%AA%A8%EC%96%B4%ED%8C%A8%EC%8A%A4-ompass/id1547587526?mt=8")
+      else Linking.openURL("https://apps.apple.com/us/app/%EC%9B%90%EB%AA%A8%EC%96%B4%ED%8C%A8%EC%8A%A4-ompass/id1547587526?mt=8")
+    }
+  }
+
   const StackContainer = <Stack.Navigator
     initialRouteName='HOME'
     // initialRouteName='Auth_Complete'
@@ -66,13 +75,15 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
     <Stack.Screen name="HOME" component={Home} />
     <Stack.Screen name="Logs" component={Logs} />
     <Stack.Screen name="QrCode" component={QrCode} />
-    <Stack.Screen name="Auth_Ing" options={{gestureEnabled: false}} component={Auth_Ing} />
+    <Stack.Screen name="Auth_Ing" options={{ gestureEnabled: false }} component={Auth_Ing} />
     <Stack.Screen name="Auth_Complete" component={Auth_Complete} />
     <Stack.Screen name="Auth_Fail" component={Auth_Fail} />
     <Stack.Screen name="OTP" component={OTP} />
-    <Stack.Screen name="Setting" options={{gestureEnabled: Object.keys(Authentications).filter(key => {
-            return Authentications[key]
-        }).length > 1 ? true : false}} component={Setting} />
+    <Stack.Screen name="Setting" options={{
+      gestureEnabled: Object.keys(Authentications).filter(key => {
+        return Authentications[key]
+      }).length > 1 ? true : false
+    }} component={Setting} />
     <Stack.Screen name="AppSetting" component={AppSetting} />
     <Stack.Screen name="LogsNum" component={LogsNum} />
     <Stack.Screen name="Pin" component={Pin} />
@@ -80,11 +91,16 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
     <Stack.Screen name="Biometrics" component={Platform.OS === 'android' ? Biometric : (iosType === 'face' ? Face : Fingerprint)} />
   </Stack.Navigator>
 
-  const customExitApp = () => {
+  const customExitApp = (noTimeOut) => {
     // if(Platform.OS === 'android') DeviceEventEmitter.removeAllListeners('isUsbConnectedEvent');
-    setTimeout(() => {
+    if (!noTimeOut) {
+      setTimeout(() => {
+        NativeModules.CustomSystem.ExitApp();
+      }, 5000);
+    } else {
       NativeModules.CustomSystem.ExitApp();
-    }, 5000);
+    }
+
   }
 
   const firstSettingFunc = async () => {
@@ -125,29 +141,23 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
       setFirstSetting(true)
     }
   }
-  
+
   const checkForgeryFunc = async () => {
     if ((await NetInfo.fetch()).isConnected) {
       NativeModules.checkForgery.isForgery(data => {
-        const { hash, version } = isDev ? { hash: true, version: true } : (Platform.OS === 'android' ? JSON.parse(data) : data)
-        if (hash) {
-          isForgeryChange({
-            isChecked: true,
-            isForgery: false
-          });
-          updateToggle({
-            isChecked: version,
-            needUpdate: !version
-          });
-          if (Platform.OS === 'ios') SplashScreen.hide();
-          if (version) firstSettingFunc();
-        } else {
-          if (Platform.OS === 'android') {
-            isForgeryChange({
-              isChecked: true,
-              isForgery: true
-            });
-          } else {
+        console.log(data)
+        let { hash, version, deprecated } = data
+        if (isDev) {
+          hash = true
+          version = true
+          deprecated = false
+        }
+        isDeprecatedChange({
+          isDeprecated: deprecated,
+          isChecked: true
+        })
+        if (!deprecated) {
+          if (hash) {
             isForgeryChange({
               isChecked: true,
               isForgery: false
@@ -155,9 +165,29 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
             updateToggle({
               isChecked: version,
               needUpdate: !version
-            })
-            if (!version) SplashScreen.hide()
+            });
+            if (Platform.OS === 'ios') SplashScreen.hide();
+            if (version) firstSettingFunc();
+          } else {
+            if (Platform.OS === 'android') {
+              isForgeryChange({
+                isChecked: true,
+                isForgery: true
+              });
+            } else {
+              isForgeryChange({
+                isChecked: true,
+                isForgery: false
+              });
+              updateToggle({
+                isChecked: version,
+                needUpdate: !version
+              })
+              if (!version) SplashScreen.hide()
+            }
           }
+        } else {
+          SplashScreen.hide()
         }
       }, err => {
         console.log(err);
@@ -190,8 +220,31 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
     if (await AsyncStorage.getItem(AsyncStorageInitSecurityKey)) setFirstSetting(true);
   }
 
+  const checkADBFuncForAndroid = (callback) => {
+    NativeModules.CheckADB.isADB(adb => {
+      if (isDev) adb = false
+      usbConnectedChange({ isChecked: true, usbConnected: adb })
+      if (!adb) {
+        if (!isDev) {
+          DeviceEventEmitter.addListener('isUsbConnectedEvent', (data) => {
+            usbConnectedChange({ isChecked: true, usbConnected: data })
+          })
+        }
+        if(callback) callback()
+      }
+    })
+  }
+
   useEffect(() => {
-    
+    if(Platform.OS === 'android') {
+      AppState.addEventListener('change', nextAppState => {
+        if (nextAppState === 'active') {
+          checkADBFuncForAndroid()
+        } else {
+          if (!isDev) DeviceEventEmitter.removeAllListeners('isUsbConnectedEvent');
+        }
+      })
+    }
     const loadAppSetting = async () => {
       await CheckPermission('All')
       const settings = await AsyncStorage.getItem(AsyncStorageAppSettingKey)
@@ -213,21 +266,7 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
     })
     if (!isJailBroken) {
       if (Platform.OS === 'android') {
-        NativeModules.CheckADB.isADB(adb => {
-          if (isDev) adb = false
-          usbConnectedChange({ isChecked: true, usbConnected: adb })
-          if (!adb) {
-            if (!isDev) {
-              DeviceEventEmitter.addListener('isUsbConnectedEvent', (data) => {
-                usbConnectedChange({ isChecked: true, usbConnected: data })
-              })
-            }
-            checkForgeryFunc();
-            return () => {
-              if (!isDev) DeviceEventEmitter.removeAllListeners('isUsbConnectedEvent');
-            }
-          }
-        })
+        checkADBFuncForAndroid(checkForgeryFunc)
       } else {
         JailMonkey.isDebuggedMode().then(res => {
           if (isDev) res = false
@@ -265,13 +304,13 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
                 {translate("first_setting_msg_3")}
               </Text>
             </> : <>
-                <Text style={{ textAlign: 'center' }}>
-                  {translate("first_setting_msg_4")}
-                </Text>
-                <Text style={{ textAlign: 'center' }}>
-                  {translate("first_setting_msg_5")}
-                </Text>
-              </>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("first_setting_msg_4")}
+              </Text>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("first_setting_msg_5")}
+              </Text>
+            </>
           }
           modalClose={() => {
             setFirstSetting(true)
@@ -313,13 +352,7 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
           }
           modalOpen={needUpdate.needUpdate}
           callback={() => {
-            if (Platform.OS === 'android') Linking.openURL("market://details?id=kr.omsecurity.ompass")
-            else {
-              const i18n = new I18n()
-              const locale = i18n.locale || i18n.defaultLocale
-              if (locale === 'ko') Linking.openURL("https://apps.apple.com/kr/app/%EC%9B%90%EB%AA%A8%EC%96%B4%ED%8C%A8%EC%8A%A4-ompass/id1547587526?mt=8")
-              else Linking.openURL("https://apps.apple.com/us/app/%EC%9B%90%EB%AA%A8%EC%96%B4%ED%8C%A8%EC%8A%A4-ompass/id1547587526?mt=8")
-            }
+            LinkToStore()
           }}
           okText={translate("go_update_app")}
           cancelText={translate("close")}
@@ -386,6 +419,25 @@ const Routes = ({ firstSetting, setFirstSetting, iosTypeToggle, needUpdate, upda
           modalOpen={isForgery.isChecked && isForgery.isForgery}
         />
         <CustomNotification
+          title={translate("is_Deprecated_title")}
+          confirm_style={{ backgroundColor: '#666666' }}
+          callback={() => {
+            LinkToStore()
+            customExitApp(true);
+          }}
+          msg={
+            <>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("is_Deprecated_msg_1")}
+              </Text>
+              <Text style={{ textAlign: 'center' }}>
+                {translate("is_Deprecated_msg_2")}
+              </Text>
+            </>
+          }
+          modalOpen={isDeprecated.isChecked && isDeprecated.isDeprecated}
+        />
+        <CustomNotification
           title={translate("server_error_title")}
           confirm_style={{ backgroundColor: '#666666' }}
           msg={
@@ -429,7 +481,8 @@ function mapStateToProps(state) {
     isRoot: state.isRoot,
     usbConnected: state.usbConnected,
     isForgery: state.isForgery,
-    firstSetting: state.firstSetting
+    firstSetting: state.firstSetting,
+    isDeprecated: state.isDeprecated
   };
 }
 
@@ -461,6 +514,9 @@ function mapDispatchToProps(dispatch) {
     },
     isForgeryChange: (toggle) => {
       dispatch(ActionCreators.isForgeryChange(toggle));
+    },
+    isDeprecatedChange: (toggle) => {
+      dispatch(ActionCreators.isDeprecatedChange(toggle));
     },
     isRootChange: (toggle) => {
       dispatch(ActionCreators.isRootChange(toggle));

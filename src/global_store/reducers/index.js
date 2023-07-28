@@ -13,6 +13,7 @@ import usbCheckReducer from './usbCheckReducer';
 import forgeryReducer from './forgeryReducer';
 import firstSettingReducer from './firstSettingReducer';
 import settingReducer from './settingReducer';
+import deprecatedReducer from './deprecatedReducer';
 
 export default combineReducers({
     isLoading: toggleReducer,
@@ -28,5 +29,6 @@ export default combineReducers({
     usbConnected: usbCheckReducer,
     isForgery: forgeryReducer,
     firstSetting: firstSettingReducer,
-    appSettings: settingReducer
+    appSettings: settingReducer,
+    isDeprecated: deprecatedReducer
 })

@@ -30,7 +30,7 @@ export function CustomNotification({modalOpen, title, msg, confirm_style, callba
                         <CustomOpacityButton
                         style={[styles.confirm_container, confirm_style]}
                         onPress={() => {
-                            modalClose();
+                            if(modalClose) modalClose();
                             if (callback) {
                                 callback();
                             }
@@ -57,10 +57,10 @@ export function CustomConfirmModal({ modalOpen, onLayout, title, msg, cancelCall
                 {/* <View style={[styles.modal_box_container, {minHeight: '40%', ...boxStyle}]}> */}
                 <View style={[styles.modal_box_container]}>
                     <View style={styles.modal_title_container}>
-                        <Text style={styles.modal_title_text, {
+                        <Text style={[styles.modal_title_text, {
                             textAlign:'center',
                             fontSize: title && title.length > 10 ? RFPercentage(2) : RFPercentage(2.5)
-                        }}>
+                        }]}>
                             {title}
                         </Text>
                     </View>

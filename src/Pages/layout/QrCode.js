@@ -1,21 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Pressable, Image, Animated, Vibration } from 'react-native';
+import { View, Text, Pressable, Image, Animated, Vibration, InteractionManager, Platform } from 'react-native';
 import styles from '../../styles/QrCode';
 import { connect } from 'react-redux';
 import ActionCreators from '../../global_store/actions';
 import * as RootNavigation from '../../Route/Router';
 import { translate } from '../../../App';
 import FidoAuthentication from '../../Function/FidoAuthentication';
-import { CameraScreen } from 'react-native-camera-kit';
 import { getDataByNonce, isJson } from '../../Function/GlobalFunction';
-import { Camera, useCameraDevices, useFrameProcessor } from 'react-native-vision-camera';
-import { BarcodeFormat, scanBarcodes, useScanBarcodes } from 'vision-camera-code-scanner';
-import Reanimated, { useSharedValue, useAnimatedProps, runOnJS } from 'react-native-reanimated';
-
-const ReanimatedCamera = Reanimated.createAnimatedComponent(Camera)
-Reanimated.addWhitelistedNativeProps({
-  zoom: true,
-})
+import { RNCamera, TakePictureResponse } from 'react-native-camera';
 
 const animationTime = 3000
 
@@ -32,7 +24,6 @@ const initQrData = {
 }
 
 const QrCode = (props) => {
-  const [hasPermission, setHasPermission] = useState(false);
   const [qr_result, setQr_result] = useState(initQrData)
   const [isFocused, setIsFocused] = useState(false);
   const [textView, setTextView] = useState(true)
@@ -40,42 +31,11 @@ const QrCode = (props) => {
   const qrAnimationStyles = {
     transform: [{ scale: qrAnimation }],
   }
-  const zoom = useSharedValue(1.1)
-  const animatedProps = useAnimatedProps(
-    () => ({ zoom: zoom.value }),
-    [zoom]
-  )
-
-  const scanRef = useRef(false);
-  const ultra_devices = useCameraDevices('ultra-wide-angle-camera')
-  const devices = useCameraDevices('wide-angle-camera')
-  const _devices = useCameraDevices()
-  const device = _devices.back || ultra_devices.back || devices.back
-
-  const [frameProcessor, barcodes] = useScanBarcodes([BarcodeFormat.QR_CODE], {
-    checkInverted: true,
-  });
-
-  // const frameProcessor = useFrameProcessor((frame) => {
-  //   'worklet';
-  //   const detectedBarcodes = scanBarcodes(frame, [BarcodeFormat.QR_CODE], {checkInverted: true});
-  //   if(detectedBarcodes[0]) {
-  //     console.log('detected')
-  //     console.log(detectedBarcodes[0])
-  //     runOnJS(onSuccess)(detectedBarcodes[0].content.data);
-  //   } else {
-  //     console.log('no detected')
-  //   }
-  // }, []);
-
-  useEffect(() => {
-    if(barcodes.length) onSuccess(barcodes[0].content.data)
-  },[barcodes])
   
+  const scanRef = useRef(false);
+
   useEffect(() => {
     const unsubscribe = props.navigation.addListener('focus', async () => {
-      const status = await Camera.requestCameraPermission();
-      setHasPermission(status === 'authorized');
       setIsFocused(true);
       props.loadingToggle(false);
       setTimeout(() => {
@@ -97,7 +57,8 @@ const QrCode = (props) => {
     };
   }, [props.navigation]);
 
-  async function onSuccess(qrData) {
+  async function onSuccess(e) {
+    const qrData = e.data
     if (!scanRef.current && qrData) {
       scanRef.current = true;
       // const qrData = e.nativeEvent.codeStringValue;
@@ -111,11 +72,11 @@ const QrCode = (props) => {
         } else {
           props.loadingToggle(true);
           getDataByNonce(url, param, userId, (result) => {
-            console.log(result)
+            if(!result.accessKey) throw "fail"
             setQr_result(result);
             props.loadingToggle(false);
           }, err => {
-            console.log(err)
+            console.log('qr nonce fail !! : ' ,err)
             scanRef.current = false;
             props.loadingToggle(false);
             Vibration.vibrate()
@@ -195,18 +156,29 @@ const QrCode = (props) => {
         </View>
         {isFocused && (
           <View style={{ position: 'absolute', zIndex: 1, width: '100%', height: '100%' }}>
-            { device && hasPermission && <ReanimatedCamera
-              style={{
-                width:'100%',
-                height:'100%'
-              }}
-              animatedProps={animatedProps}
-              frameProcessorFps={5}
-              frameProcessor={frameProcessor}
-              device={device}
-              isActive={true}
-            />}
-            {/* <CameraScreen onReadCode={onSuccess} scanBarcode ratioOverlay="1:1" hideControls={true}/> */}
+            <RNCamera
+                onCameraReady={() => {
+                    const task = InteractionManager.runAfterInteractions(() => {
+                        props.loadingToggle(false)
+                    });
+                    return () => task.cancel();
+                }}
+                onMountError={(err) => {
+                    setIsFocused(false);
+                    const task = InteractionManager.runAfterInteractions(() => {
+                        setIsFocused(true);
+                    });
+                    return () => task.cancel();
+                }}
+                zoom={Platform.OS === 'android' ? 0.035 : 0}
+                onBarCodeRead={onSuccess}
+                type={RNCamera.Constants.Type.back}
+                captureAudio={false}
+                style={{
+                  width: '100%',
+                  height: '100%'
+                }}
+            />
           </View>
         )}
       </View>

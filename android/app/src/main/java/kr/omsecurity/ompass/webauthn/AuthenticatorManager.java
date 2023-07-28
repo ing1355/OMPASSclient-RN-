@@ -68,7 +68,7 @@ public class AuthenticatorManager {
         this.accessKey = accessKey;
         this.domain = domain;
         home = "https://" + fidoAddress;
-//      home = "https://210.104.181.54:8383";
+//      home = "http://192.168.182.37:9002";
         setUp();
     }
 
@@ -310,7 +310,7 @@ public class AuthenticatorManager {
 //                    e.printStackTrace();
 //                }
                 finally {
-                    conPreAuthenticate.disconnect();
+                    if(conPreAuthenticate != null) conPreAuthenticate.disconnect();
                 }
             }
         }).start();
@@ -508,7 +508,7 @@ public class AuthenticatorManager {
 //                    e.printStackTrace();
 //                }
                 finally {
-                    conAuthenticate.disconnect();
+                    if(conAuthenticate != null) conAuthenticate.disconnect();
                 }
             }
         }).start();
@@ -536,6 +536,7 @@ public class AuthenticatorManager {
     //
     public JSONObject preRegister(String username, String displayName, String redirectUri, int did) {
         String jsonString = getPreRegisterJson(username, displayName, redirectUri, did);
+        System.out.println("preRegister json : " + jsonString);
         String urlString = home + "/fido2/preregister";
         URL url = null;
         final JSONObject[] return_value = {new JSONObject()};
@@ -636,7 +637,7 @@ public class AuthenticatorManager {
 //                    e.printStackTrace();
 //                }
                 finally {
-                    con.disconnect();
+                    if(con != null) con.disconnect();
                 }
             }
         });
@@ -812,7 +813,7 @@ public class AuthenticatorManager {
 //                    e.printStackTrace();
 //                }
                 finally {
-                    conRegister[0].disconnect();
+                    if(conRegister[0] != null) conRegister[0].disconnect();
                 }
 
             }

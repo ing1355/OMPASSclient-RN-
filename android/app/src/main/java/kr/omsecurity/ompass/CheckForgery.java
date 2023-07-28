@@ -6,10 +6,8 @@ import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.*;
+import kr.omsecurity.ompass.Constants.StaticMethods;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,10 +15,12 @@ import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLHandshakeException;
 import java.io.*;
 import java.net.ConnectException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.cert.CertificateException;
+import java.util.Iterator;
 
 import static kr.omsecurity.ompass.webauthn.AuthenticatorManager.insertCAContext;
 
@@ -55,8 +55,8 @@ public class CheckForgery extends ReactContextBaseJavaModule {
             } else {
                 installer = pm.getInstallerPackageName(packageName);
             }
-//            if (installer != null && installer.startsWith("com.android.vending")) {
-            if (true) {
+            if (BuildConfig.DEBUG || (installer != null && installer.startsWith("com.android.vending"))) {
+//            if (true) {
                 URL urlAuthenticate = new URL("https://admin-api.ompasscloud.com/oms/app-verification/os/android/version/" + BuildConfig.VERSION_NAME);
                 HttpsURLConnection conCheckForgery = null;
                 conCheckForgery = (HttpsURLConnection) urlAuthenticate.openConnection();
@@ -74,19 +74,20 @@ public class CheckForgery extends ReactContextBaseJavaModule {
                         response.append(responseLine.trim());
                     }
                     JSONObject json = new JSONObject(response.toString());
-                    JSONObject return_json = json.getJSONObject("data");
-                    return_json.put("hash", true);
-                    System.out.println("json response : " + response.toString());
-                    System.out.println("json response : " + return_json.toString());
-                    successCallback.invoke(return_json.toString());
+                    JSONObject jsonData = json.getJSONObject("data");
+                    jsonData.put("hash", true);
+                    successCallback.invoke(StaticMethods.convertJsonToMap(jsonData));
                 } catch (FileNotFoundException | SSLHandshakeException | ConnectException e) {
                     e.printStackTrace();
                     err_msg = "Server Connection Error";
                 }
             } else {
-                successCallback.invoke("{\"hash\":false}");
+                WritableMap result = new WritableNativeMap();
+                result.putBoolean("hash", false);
+                successCallback.invoke(result);
             }
-        } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException | KeyManagementException | JSONException e) {
+        } catch (IOException | NoSuchAlgorithmException | CertificateException | KeyStoreException |
+                 KeyManagementException | JSONException e) {
             e.printStackTrace();
             err_msg = "Internel Error";
         }

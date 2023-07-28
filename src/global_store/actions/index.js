@@ -8,7 +8,8 @@ import * as isForgeryChange from './isForgeryChange';
 import * as usbConnectedChange from './usbConnectedChange';
 import * as firstSettingToggle from './firstSettingToggle';
 import * as settingChange from './settingChange';
+import * as isDeprecatedChange from './isDeprecatedChange';
 
-const ActionCreators = Object.assign({}, loadingAction, AuthAction, NotificationAction, iosTypeAction, updateToggle, isRootChange, isForgeryChange, usbConnectedChange, firstSettingToggle, settingChange);
+const ActionCreators = Object.assign({}, loadingAction, AuthAction, NotificationAction, iosTypeAction, updateToggle, isRootChange, isForgeryChange, usbConnectedChange, firstSettingToggle, settingChange, isDeprecatedChange);
 
 export default ActionCreators;

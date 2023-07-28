@@ -26,3 +26,24 @@ installer.pods_project.targets.each do |target|
 
 
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+deprecated-react-native-prop-types 에러
+
+node_modules/react-native/index.js
+
+get ColorPropType(): $FlowFixMe {
+    return require("deprecated-react-native-prop-types").ColorPropType
+  },
+  get EdgeInsetsPropType(): $FlowFixMe {
+    return require("deprecated-react-native-prop-types").EdgeInsetsPropType
+  },
+  get PointPropType(): $FlowFixMe {
+    return require("deprecated-react-native-prop-types").PointPropType
+  },
+  get ViewPropTypes(): $FlowFixMe {
+    return require("deprecated-react-native-prop-types").ViewPropTypes
+  },
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------

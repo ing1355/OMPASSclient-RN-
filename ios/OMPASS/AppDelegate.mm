@@ -1,5 +1,6 @@
 #import "AppDelegate.h"
 
+#import "EventEmitter.h"
 #import <React/RCTLinkingManager.h>
 #import <React/RCTBridge.h>
 #import <React/RCTBundleURLProvider.h>
@@ -7,8 +8,7 @@
 #import <React/RCTAppSetupUtils.h>
 #import "RNSplashScreen.h"
 #import <Firebase.h>
-#import "RNFBMessagingModule.h"
-//#import "RNFBMessaging+AppDelegate.h"
+#import <UserNotifications/UserNotifications.h>
 
 #if RCT_NEW_ARCH_ENABLED
 #import <React/CoreModulesPlugins.h>
@@ -40,6 +40,17 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   if ([FIRApp defaultApp] == nil) {
     [FIRApp configure];
   }
+  [UNUserNotificationCenter currentNotificationCenter].delegate = self;
+  UNAuthorizationOptions authOptions = UNAuthorizationOptionAlert |
+      UNAuthorizationOptionSound | UNAuthorizationOptionBadge;
+  [[UNUserNotificationCenter currentNotificationCenter]
+      requestAuthorizationWithOptions:authOptions
+      completionHandler:^(BOOL granted, NSError * _Nullable error) {
+        
+      }];
+  [application registerForRemoteNotifications];
+  [FIRMessaging messaging].delegate = self;
+  
   
   RCTAppSetupPrepareApp(application);
   
@@ -53,9 +64,20 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   bridge.surfacePresenter = _bridgeAdapter.surfacePresenter;
 #endif
   
+  UIView *rootView = NULL;
+  
+  if (launchOptions) { //launchOptions is not nil
+      NSDictionary *userInfo = [launchOptions valueForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
+      NSString *dataInfo = [userInfo objectForKey:@"data"];
+      NSDictionary *initProps = [self prepareInitialProps:dataInfo];
+      rootView = RCTAppSetupDefaultRootView(bridge, @"ompass", initProps);
+  } else {
+      rootView = RCTAppSetupDefaultRootView(bridge, @"ompass", nil);
+  }
+  
   //  NSDictionary *initProps = [self prepareInitialProps];
-  NSDictionary *appProperties = [RNFBMessagingModule addCustomPropsToUserProps:nil withLaunchOptions:launchOptions];
-  UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"ompass", appProperties);
+//  NSDictionary *appProperties = [RNFBMessagingModule addCustomPropsToUserProps:nil withLaunchOptions:launchOptions];
+//  UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"ompass", appProperties);
   
   if (@available(iOS 13.0, *)) {
     rootView.backgroundColor = [UIColor systemBackgroundColor];
@@ -71,18 +93,28 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   return YES;
 }
 
-- (void)application:(UIApplication *)application
-didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
-//  NSLog(@"APNs device token retrieved: %@", deviceToken);
-//  NSData *data = deviceToken;
-//  NSUInteger capacity = data.length * 2;
-//  NSMutableString *mutableString = [NSMutableString stringWithCapacity:capacity];
-//  const unsigned char *buf = (const unsigned char*) [data bytes];
-//  NSInteger t;
-//  for (t=0; t<data.length; ++t) {    [mutableString appendFormat:@"%02lX", (unsigned long)buf[t]];  }
-//  NSString * hexstring =mutableString;
-//  NSLog(@"Token String: %@", hexstring);
-  [FIRMessaging messaging].APNSToken = deviceToken;
+- (void) userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
+    NSDictionary *userInfo = notification.request.content.userInfo;
+    NSLog(@"포그라운드 푸시 데이터 : %@", userInfo);
+  
+    if (@available(iOS 14.0, *)) {
+      completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionBanner | UNNotificationPresentationOptionList | UNNotificationPresentationOptionBadge);
+    } else {
+      completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionList | UNNotificationPresentationOptionBanner | UNNotificationPresentationOptionBadge);
+    }
+    [EventEmitter emitEventDictionaryWithName: @"pushEvent" andPayload: userInfo];
+}
+
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)())completionHandler {
+    NSDictionary *userInfo = response.notification.request.content.userInfo;
+    NSLog(@"푸시 데이터 : %@", userInfo);
+    [EventEmitter emitEventDictionaryWithName: @"pushEvent" andPayload: userInfo];
+    completionHandler();
+}
+
+- (void)messaging:(FIRMessaging *)messaging didReceiveRegistrationToken:(NSString *)fcmToken {
+    NSLog(@"FCM new registration token: %@", fcmToken);
+    [EventEmitter emitEventStringWithName: @"newToken" andPayload: fcmToken];
 }
 
 /// This method controls whether the `concurrentRoot`feature of React18 is turned on or off.
@@ -96,14 +128,14 @@ didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
   return true;
 }
 
-- (NSDictionary *)prepareInitialProps
+- (NSDictionary *)prepareInitialProps: (NSString*)data
 {
   NSMutableDictionary *initProps = [NSMutableDictionary new];
-  
+  [initProps setObject:data forKey:@"data"];
 #ifdef RCT_NEW_ARCH_ENABLED
   initProps[kRNConcurrentRoot] = @([self concurrentRootEnabled]);
 #endif
-  
+
   return initProps;
 }
 
@@ -115,19 +147,6 @@ didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
 #endif
 }
-
-//- (void)application:(UIApplication *)application
-//    didReceiveRemoteNotification:(NSDictionary *)userInfo
-//fetchCompletionHandler:(void (^)(UIBackgroundFetchResult result))completionHandler {
-//  RNFBMessagingAppDelegate *sharedInstance = [RNFBMessagingAppDelegate sharedInstance];
-//    [sharedInstance.conditionBackgroundMessageHandlerSet lock];
-//    NSLog(@"signalBackgroundMessageHandlerSet sharedInstance.backgroundMessageHandlerSet was %@",
-//         sharedInstance.backgroundMessageHandlerSet ? @"YES" : @"NO");
-//    sharedInstance.backgroundMessageHandlerSet = YES;
-//    [sharedInstance.conditionBackgroundMessageHandlerSet broadcast];
-//    [sharedInstance.conditionBackgroundMessageHandlerSet unlock];
-//  completionHandler(UIBackgroundFetchResultNoData);
-//}
 
 - (BOOL)application:(UIApplication *)application
 openURL:(NSURL *)url

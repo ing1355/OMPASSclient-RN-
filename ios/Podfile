@@ -7,8 +7,6 @@ install! 'cocoapods', :deterministic_uuids => false
 target 'OMPASS' do
   config = use_native_modules!
   # use_frameworks!
-  pod 'GoogleUtilities', :modular_headers => true
-  pod 'FirebaseCore', :modular_headers => true
   pod 'SwiftKeychainWrapper'
 
   permissions_path = '../node_modules/react-native-permissions/ios'

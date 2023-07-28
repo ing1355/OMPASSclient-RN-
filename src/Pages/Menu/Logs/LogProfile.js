@@ -15,12 +15,12 @@ const createTextRow = (title, description, style, option) => <View style={[style
 </View>
 
 const LogProfile = ({ data }) => {
-    const { username, OS, Browser, GPU, logs } = data
+    const { username, OS, Browser, GPU, logs, alias } = data
     return <View style={styles.log_detail_profile_container}>
-        {createTextRow('ID', username)}
-        {createTextRow('OS', OS)}
-        {createTextRow('Browser', Browser)}
-        {createTextRow('GPU', GPU, {
+        {createTextRow('ID', alias || username)}
+        {OS && createTextRow('OS', OS)}
+        {Browser && createTextRow('Browser', Browser)}
+        {GPU && createTextRow('GPU', GPU, {
             height: 45
         }, {
             numberOfLines: 2,

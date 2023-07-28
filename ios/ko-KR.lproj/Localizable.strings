@@ -1,0 +1,2 @@
+notification_title_string = "%@에서 OMPASS 인증 시도";
+notification_message_string = "%@ 아이디로 로그인 요청";

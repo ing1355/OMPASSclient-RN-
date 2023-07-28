@@ -9,7 +9,6 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.soloader.SoLoader;
-import com.visioncameracodescanner.VisionCameraCodeScannerPluginPackage;
 
 import kr.omsecurity.ompass.Security_Auth.SecurityPackage;
 import kr.omsecurity.ompass.newarchitecture.MainApplicationReactNativeHost;
@@ -29,7 +28,6 @@ public class MainApplication extends Application implements ReactApplication {
         protected List<ReactPackage> getPackages() {
           @SuppressWarnings("UnnecessaryLocalVariable")
           List<ReactPackage> packages = new PackageList(this).getPackages();
-//          packages.add(new VisionCameraCodeScannerPluginPackage());
             packages.add(new ReactPackages());
             packages.add(new SecurityPackage());
           // Packages that cannot be autolinked yet can be added manually here, for example:

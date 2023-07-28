@@ -20,6 +20,7 @@ public class ReactPackages implements ReactPackage {
         modules.add(new CheckForgery(reactContext));
         modules.add(new CheckADB(reactContext));
         modules.add(new CustomSystem(reactContext));
+        modules.add(new FCMFunctions(reactContext));
         return modules;
     }
 

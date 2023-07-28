@@ -11,7 +11,6 @@ import { CustomConfirmModal } from '../Components/CustomAlert';
 import { GetClientInfo } from './GetClientInfo';
 import { AsyncStorageAuthenticationsKey, AsyncStorageCurrentAuthKey, AsyncStorageFcmTokenKey, AsyncStoragePushDataKey } from '../Constans/ContstantValues';
 import { saveAuthLogByResult } from './GlobalFunction';
-import notifee from '@notifee/react-native'
 import RegisterAuthentication from '../Auth/RegisterAuthentication';
 import ActionCreators from '../global_store/actions';
 import * as RNLocalize from 'react-native-localize';
@@ -36,13 +35,15 @@ const initAuthData = {
   accessKey: '',
   fidoAddress: '',
   clientInfo: {
+    alias: '',
     browser: '',
     gpu: '',
     os: '',
     osVersion: '',
     name: '',
     ip: '',
-    location: ''
+    location: '',
+    uuid: ''
   },
   displayName: '',
   procedure: '',
@@ -51,8 +52,9 @@ const initAuthData = {
 
 const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnected, needUpdate, loadingToggle, currentAuth, modalCloseCallback, initCallback }) => {
   const [authData, setAuthData] = useState(initAuthData)
-  const { domain, did, redirectUri, username, accessKey, fidoAddress, clientInfo, displayName, procedure, applicationName } = authData;
-  
+  const { domain, did, redirectUri, accessKey, fidoAddress, clientInfo, displayName, procedure } = authData;
+  const { uuid } = clientInfo
+  const username = uuid ? `${authData.username}_${uuid}` : authData.username
   const { notificationToggle, appSettings } = useSelector(state => ({
     notificationToggle: state.notificationToggle,
     appSettings: state.appSettings
@@ -96,7 +98,7 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
 
   const AuthCompleteCallback = (type) => {
     const callback = () => {
-      if (!appSettings.exitAfterAuth && clientInfo.browser.includes('Mobile')) {
+      if (!appSettings.exitAfterAuth && clientInfo.browser && clientInfo.browser.includes('Mobile')) {
         BackHandler.exitApp()
       }
     }
@@ -245,7 +247,6 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
           }
           if (tempAuthData.procedure === 'auth') {
             const preFunc = async () => {
-              await notifee.setBadgeCount(0)
               await AsyncStorage.removeItem(AsyncStoragePushDataKey)
               isAuthenticateCheckedToggle(false)
             }
@@ -288,7 +289,6 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
   return <CustomConfirmModal
     title={translate('confirmUserTitle', { type: procedure === 'reg' ? (isKr ? '등록' : 'Registration') : (isKr ? '인증' : 'Authentication') })}
     onShow={async () => {
-      await notifee.cancelAllNotifications()
       Vibration.vibrate();
     }}
     yesOrNo
