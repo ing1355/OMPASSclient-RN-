@@ -1,7 +1,6 @@
 export const AsyncStorageInitSecurityKey = 'INITSECURITY'
 export const AsyncStorageFcmTokenKey = 'FCMTOKEN'
 export const AsyncStorageLogKey = 'LOGS'
-export const AsyncStoragePushDataKey = 'AUTHENTICATEPUSHDATA'
 export const AsyncStorageCurrentAuthKey = 'CURRENTAUTH'
 export const AsyncStorageAuthenticationsKey = 'AUTHENTICATIONS'
 export const AsyncStorageIosTypeKey = 'IOSTYPE'

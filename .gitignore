@@ -63,5 +63,6 @@ buck-out/
 /ios/Pods/
 /vendor/bundle/
 
-**/*.apk
-**/*.aab
+*.apk
+*.aab
+*.zip

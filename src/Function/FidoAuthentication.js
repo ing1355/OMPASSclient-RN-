@@ -1,15 +1,15 @@
 import Authenticate from '../Auth/Authenticate';
 import webAuthn from '../Auth/webAuthn';
 import * as navigation from '../Route/Router';
-import { BackHandler, Platform, Text, Vibration, View } from 'react-native';
+import { BackHandler, NativeModules, Platform, Text, Vibration, View } from 'react-native';
 import RNFetchBlob from 'rn-fetch-blob';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { connect, useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { isAuthenticateCheckedToggle, translate } from '../../App';
+import { translate } from '../../App';
 import { CustomConfirmModal } from '../Components/CustomAlert';
 import { GetClientInfo } from './GetClientInfo';
-import { AsyncStorageAuthenticationsKey, AsyncStorageCurrentAuthKey, AsyncStorageFcmTokenKey, AsyncStoragePushDataKey } from '../Constans/ContstantValues';
+import { AsyncStorageAuthenticationsKey, AsyncStorageCurrentAuthKey, AsyncStorageFcmTokenKey } from '../Constans/ContstantValues';
 import { saveAuthLogByResult } from './GlobalFunction';
 import RegisterAuthentication from '../Auth/RegisterAuthentication';
 import ActionCreators from '../global_store/actions';
@@ -54,13 +54,17 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
   const [authData, setAuthData] = useState(initAuthData)
   const { domain, did, redirectUri, accessKey, fidoAddress, clientInfo, displayName, procedure } = authData;
   const { uuid } = clientInfo
-  const username = uuid ? `${authData.username}_${uuid}` : authData.username
+  const username = uuid ? `${authData.username}~${uuid}` : authData.username
   const { notificationToggle, appSettings } = useSelector(state => ({
     notificationToggle: state.notificationToggle,
     appSettings: state.appSettings
   }))
   const [modalOpen, setModalOpen] = useState(false);
   const dispatch = useDispatch()
+  
+  useEffect(() => {
+    if(modalOpen) Vibration.vibrate()
+  },[modalOpen])
 
   const cancelInitFunction = () => {
     setAuthData(initAuthData)
@@ -98,6 +102,7 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
 
   const AuthCompleteCallback = (type) => {
     const callback = () => {
+      if(procedure === 'auth') NativeModules.CustomSystem.cancelNotification(accessKey)
       if (!appSettings.exitAfterAuth && clientInfo.browser && clientInfo.browser.includes('Mobile')) {
         BackHandler.exitApp()
       }
@@ -111,6 +116,7 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
   }
 
   const AuthErrorCallback = (type, err, navigate) => {
+    cancelInitFunction()
     RouteFiltering()
     if (navigate) {
       navigation.navigate('Auth_Fail', {
@@ -226,31 +232,22 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
       })
     }
   }
-
+  
   useLayoutEffect(() => {
     if (tempAuthData.accessKey && isForgery.isChecked && isRoot.isChecked && usbConnected.isChecked && needUpdate.isChecked && !(isForgery.isForgery || isRoot.isRoot || usbConnected.usbConnected || needUpdate.needUpdate)) {
       const withAuthCheck = async () => {
         if (await check_auth_info()) {
+          console.log('key ?? : ' ,accessKey)
           // if (execute && true) {
           if (notificationToggle) dispatch(changeNotificationToggle(false))
-          if(accessKey !== tempAuthData.accessKey) {
-            setTimeout(() => {
-              if (modalOpen) {
-                setModalOpen(false)
-                setTimeout(() => {
-                  setModalOpen(true)
-                }, 100);
-              } else {
-                setModalOpen(true);
-              }
-            }, 150);
+          if(modalOpen) {
+            setModalOpen(false)
           }
+          setTimeout(() => {
+            setModalOpen(true)
+          }, 10);
           if (tempAuthData.procedure === 'auth') {
-            const preFunc = async () => {
-              await AsyncStorage.removeItem(AsyncStoragePushDataKey)
-              isAuthenticateCheckedToggle(false)
-            }
-            preFunc()
+            
           } else {
             // RNFetchBlob.config({ trusty: true }).fetch(
             //   'POST',
@@ -288,14 +285,12 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
   
   return <CustomConfirmModal
     title={translate('confirmUserTitle', { type: procedure === 'reg' ? (isKr ? '등록' : 'Registration') : (isKr ? '인증' : 'Authentication') })}
-    onShow={async () => {
-      Vibration.vibrate();
-    }}
     yesOrNo
     msg={
       <>
         {RightMsg('authFirstItemTitle', tempAuthData.applicationName)}
         {RightMsg('authSecondItemTitle', tempAuthData.username)}
+        {/* {RightMsg('authSecondItemTitle', tempAuthData && tempAuthData.accessKey && tempAuthData.accessKey.split('.')[2])} */}
         {RightMsg('authThirdItemTitle', tempAuthData.clientInfo && tempAuthData.clientInfo.ip)}
         {RightMsg('authFourthItemTitle', tempAuthData.clientInfo && tempAuthData.clientInfo.location)}
         <Text style={{ textAlign: 'center', marginTop: 8 }}>

@@ -2,12 +2,14 @@ package kr.omsecurity.ompass;
 
 import android.Manifest;
 import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.WindowManager;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -42,6 +44,7 @@ public class MainActivity extends ReactActivity {
       @Override
       protected Bundle getLaunchOptions() {
         String searchedData = getIntent().getStringExtra("data");
+//        if(searchedData != null) setIntent(null);
         Bundle bundle = new Bundle();
         bundle.putString("data", searchedData);
         return bundle;
@@ -95,8 +98,8 @@ public class MainActivity extends ReactActivity {
   public void onNewIntent(Intent intent) {
     super.onNewIntent(intent);
     String pushData = intent.getStringExtra("data");
-    System.out.println("onNewIntent : " + pushData);
     if (pushData != null) {
+//      setIntent(null);
       ReactInstanceManager reactInstanceManager = getReactNativeHost().getReactInstanceManager();
       ReactContext reactContext = reactInstanceManager.getCurrentReactContext();
       if (reactContext != null) {
@@ -123,20 +126,27 @@ public class MainActivity extends ReactActivity {
     activityReference = this;
     createFlag = false;
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
-    NotificationManager notificationManager =
-            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      NotificationChannel channel = new NotificationChannel("Channel ID",
-              "Channel human readable title",
-              NotificationManager.IMPORTANCE_HIGH);
-      notificationManager.createNotificationChannel(channel);
-    }
   }
 
   @Override
   protected void onResume() {
     super.onResume();
     isActivityForeground = true;
+    NotificationManager notificationManager =
+            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      String channelId = getApplicationContext().getResources().getString(R.string.channel_title);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        if(notificationManager.getNotificationChannelGroup(channelId) == null) {
+          NotificationChannelGroup group = new NotificationChannelGroup(channelId, channelId);
+          notificationManager.createNotificationChannelGroup(group);
+          if(notificationManager.getNotificationChannel(channelId) == null) {
+            NotificationChannel channel = new NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH);
+            notificationManager.createNotificationChannel(channel);
+          }
+        }
+      }
+    }
   }
 
   @Override
@@ -145,4 +155,10 @@ public class MainActivity extends ReactActivity {
     isActivityForeground = false;
     createFlag = true;
   }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+  }
+
 }

@@ -1,9 +1,10 @@
-import React, { useRef, useLayoutEffect, useState } from 'react';
+import React, { useRef, useLayoutEffect, useState, useEffect } from 'react';
 import {
   LogBox,
   AppState,
   Linking,
-  Vibration
+  Vibration,
+  NativeModules
 } from 'react-native';
 import 'react-native-gesture-handler';
 import Routes from './src/Route/Routes';
@@ -14,7 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loading from './src/Components/Loading'
 import { push_function } from './src/Function/PushFunctions';
 import { I18n } from 'i18n-js';
-import { AsyncStorageFcmTokenKey, AsyncStoragePushDataKey } from './src/Constans/ContstantValues';
+import { AsyncStorageFcmTokenKey } from './src/Constans/ContstantValues';
 import * as RootNavigation from './src/Route/Router'
 import { getCurrentFullDateTime, getDataByNonce } from './src/Function/GlobalFunction';
 import { CustomNativeEventEmitter, getToken } from './src/Function/NativeModules';
@@ -64,12 +65,6 @@ const setI18nConfig = () => {
 
 setI18nConfig();
 
-export let isAuthenticateChecked = false;
-
-export function isAuthenticateCheckedToggle(checked) {
-  isAuthenticateChecked = checked
-}
-
 const initTempData = {
   clientInfo: {
     browser: '',
@@ -84,7 +79,6 @@ const initTempData = {
 
 const App = (props) => {
   const [push_result_temp, setPush_result_temp] = useState(initTempData)
-  const [execute, setExecute] = useState(false);
   const [fidoType, setFidoType] = useState("auth")
   const tempRef = useRef({})
 
@@ -99,7 +93,6 @@ const App = (props) => {
   const pushCallback = async (data) => {
     push_function(data, res => {
       const result = JSON.parse(res)
-      console.log("result : " ,getCurrentFullDateTime(result.sessionExpirationTime), getCurrentFullDateTime())
       if(!result.sessionExpirationTime || result.sessionExpirationTime - new Date().getTime() > 0) {
         if(result.accessKey !== tempRef.current.accessKey) {
           setFidoType('auth')
@@ -107,47 +100,35 @@ const App = (props) => {
         }
       }
     })
-    await AsyncStorage.removeItem(AsyncStoragePushDataKey)
   }
 
   const checkAuthenticatePushData = async (data) => {
-    console.log('push Data : ' ,data)
-    isAuthenticateChecked = true
     if (data) {
       pushCallback(data)
-    } else {
-      const data = await AsyncStorage.getItem(AsyncStoragePushDataKey)
-      if (data) {
-        pushCallback(data)
-      }
     }
-    isAuthenticateChecked = false;
   }
 
   useLayoutEffect(() => {
-    if(props && props.data) checkAuthenticatePushData(props.data)
+    if(Platform.OS === 'ios') {
+      const pendingPush = NativeModules.CustomSystem.checkPendingPush()
+      if(pendingPush) checkAuthenticatePushData(pendingPush.data)
+    } else {
+      if(props && props.data) checkAuthenticatePushData(props.data)
+    }
     // const back_handle = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
     const handleLocalizationChange = () => {
       setI18nConfig();
     };
     _getToken()
     CustomNativeEventEmitter.addListener('pushEvent', data => {
+      if(Platform.OS === 'ios') NativeModules.CustomSystem.cancelPendingPush()
       checkAuthenticatePushData(Platform.OS === 'android' ? data : data.data)
     })
     RNLocalize.addEventListener('change', handleLocalizationChange);
     Linking.getInitialURL().then(url => {
       if (url) {
         appLinkCallback(url)
-      } else {
-        if (!isAuthenticateChecked) {
-          checkAuthenticatePushData()
-        }
       }
-      // AppState.addEventListener('change', async nextAppState => {
-      //   if (nextAppState === 'active' && !isAuthenticateChecked) {
-      //     checkAuthenticatePushData()
-      //   }
-      // })
     })
     Linking.addEventListener('url', ({ url }) => {
       if (url) appLinkCallback(url)
@@ -159,7 +140,6 @@ const App = (props) => {
   }, [])
 
   const appLinkCallback = (url) => {
-    isAuthenticateChecked = true
     let regex = /[?&]([^=#]+)=([^&#]*)/g,
     params = {},
     match
@@ -180,9 +160,7 @@ const App = (props) => {
           setPush_result_temp(data)
         }
       }
-      isAuthenticateChecked = false
     }, (err) => {
-      isAuthenticateChecked = false
       console.log(err)
       Vibration.vibrate()
       RootNavigation.navigate('Auth_Fail', {

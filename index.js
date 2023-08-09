@@ -5,6 +5,9 @@ import React from 'react'
 import { name as appName } from './app.json';
 import { Provider } from 'react-redux';
 import store from './src/global_store/store';
+// import { ENVIRONMENT } from '@env'
+
+// console.log = ENVIRONMENT === 'dev' ? () => {} : console.log
 
 const HeadlessCheck = ({data, isHeadless}) => {
   if (isHeadless) {

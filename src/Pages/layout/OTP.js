@@ -33,7 +33,6 @@ const OTPItem = ({ data, opened, setOpened, isFirst }) => {
     }, [opened])
 
     const createOtp = (domain, userName, uuid = "") => {
-        console.log('otp : ' , domain, userName, uuid)
         clearTimers()
         setProgress(0)
         setOtp(totp(Base32Encode(domain + userName + uuid), { period: tick }))

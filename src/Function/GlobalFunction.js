@@ -126,7 +126,6 @@ export const getDataByNonce = (url, nonce, userId, successCallback, errorCallbac
                     if(_data.error) {
                         if (errorCallback) errorCallback(_data.error)
                     } else {
-                        console.log('nonce data : ', _data)
                         successCallback(_data)
                     }
                 } catch (e) {

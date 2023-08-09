@@ -52,7 +52,6 @@ const LogItem = ({ data }) => {
                 <Image source={defaultImage ? require('../../../assets/mark.png') : {
                     uri: (domain.startsWith('http') ? domain : "https://" + domain) + '/favicon.ico'
                 }} onError={(evt) => {
-                    console.log(evt)
                     setDefaultImage(true)
                 }} resizeMode="contain" style={[styles.content_icon]} />
             </View>

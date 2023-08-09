@@ -40,14 +40,16 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   if ([FIRApp defaultApp] == nil) {
     [FIRApp configure];
   }
-  [UNUserNotificationCenter currentNotificationCenter].delegate = self;
-  UNAuthorizationOptions authOptions = UNAuthorizationOptionAlert |
-      UNAuthorizationOptionSound | UNAuthorizationOptionBadge;
-  [[UNUserNotificationCenter currentNotificationCenter]
-      requestAuthorizationWithOptions:authOptions
-      completionHandler:^(BOOL granted, NSError * _Nullable error) {
-        
-      }];
+  if ([UNUserNotificationCenter class] != nil) [UNUserNotificationCenter currentNotificationCenter].delegate = self;
+  UNUserNotificationCenter *center = [UNUserNotificationCenter currentNotificationCenter];
+  [center requestAuthorizationWithOptions:(UNAuthorizationOptionAlert | UNAuthorizationOptionBadge | UNAuthorizationOptionSound)
+                        completionHandler:^(BOOL granted, NSError * _Nullable error) {
+      if (granted) {
+          NSLog(@"알림 권한이 승인되었습니다.");
+      } else {
+          NSLog(@"알림 권한이 거부되었습니다.");
+      }
+  }];
   [application registerForRemoteNotifications];
   [FIRMessaging messaging].delegate = self;
   
@@ -65,19 +67,7 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 #endif
   
   UIView *rootView = NULL;
-  
-  if (launchOptions) { //launchOptions is not nil
-      NSDictionary *userInfo = [launchOptions valueForKey:UIApplicationLaunchOptionsRemoteNotificationKey];
-      NSString *dataInfo = [userInfo objectForKey:@"data"];
-      NSDictionary *initProps = [self prepareInitialProps:dataInfo];
-      rootView = RCTAppSetupDefaultRootView(bridge, @"ompass", initProps);
-  } else {
-      rootView = RCTAppSetupDefaultRootView(bridge, @"ompass", nil);
-  }
-  
-  //  NSDictionary *initProps = [self prepareInitialProps];
-//  NSDictionary *appProperties = [RNFBMessagingModule addCustomPropsToUserProps:nil withLaunchOptions:launchOptions];
-//  UIView *rootView = RCTAppSetupDefaultRootView(bridge, @"ompass", appProperties);
+  rootView = RCTAppSetupDefaultRootView(bridge, @"ompass", nil);
   
   if (@available(iOS 13.0, *)) {
     rootView.backgroundColor = [UIColor systemBackgroundColor];
@@ -93,10 +83,13 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
   return YES;
 }
 
+- (void)applicationDidBecomeActive:(UIApplication *)application {
+    application.applicationIconBadgeNumber = 0;
+}
+
 - (void) userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
     NSDictionary *userInfo = notification.request.content.userInfo;
-    NSLog(@"포그라운드 푸시 데이터 : %@", userInfo);
-  
+    NSLog(@"푸시 데이터1 : %@", userInfo);
     if (@available(iOS 14.0, *)) {
       completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionBanner | UNNotificationPresentationOptionList | UNNotificationPresentationOptionBadge);
     } else {
@@ -107,8 +100,8 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)())completionHandler {
     NSDictionary *userInfo = response.notification.request.content.userInfo;
-    NSLog(@"푸시 데이터 : %@", userInfo);
     [EventEmitter emitEventDictionaryWithName: @"pushEvent" andPayload: userInfo];
+    [[NSUserDefaults standardUserDefaults] setObject:userInfo forKey:@"pendingPushData"];
     completionHandler();
 }
 

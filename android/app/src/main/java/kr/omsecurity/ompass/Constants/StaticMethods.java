@@ -5,6 +5,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 
 public class StaticMethods {
@@ -111,5 +115,17 @@ public class StaticMethods {
             }
         }
         return array;
+    }
+
+    public static int stringToIntUUID(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            BigInteger bigInteger = new BigInteger(1, hash);
+            return Math.abs(bigInteger.intValue());
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return 0; // 에러 발생 시 0을 반환하거나 다른 예외 처리를 수행할 수 있습니다.
+        }
     }
 }

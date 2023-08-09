@@ -41,7 +41,7 @@ import { CheckPermission } from '../Components/CheckPermissions';
 import { ENVIRONMENT } from '@env'
 
 const isDev = ENVIRONMENT === 'dev'
-console.log('isdev : ', isDev)
+console.log('dev : ' ,isDev)
 const Stack = createStackNavigator();
 
 const Routes = ({ isDeprecated, isDeprecatedChange, firstSetting, setFirstSetting, iosTypeToggle, needUpdate, updateToggle, isForgeryChange, isRootChange, isRoot, isForgery, usbConnected, usbConnectedChange, changeCurrentAuth, auth_all, Authentications }) => {
@@ -145,7 +145,6 @@ const Routes = ({ isDeprecated, isDeprecatedChange, firstSetting, setFirstSettin
   const checkForgeryFunc = async () => {
     if ((await NetInfo.fetch()).isConnected) {
       NativeModules.checkForgery.isForgery(data => {
-        console.log(data)
         let { hash, version, deprecated } = data
         if (isDev) {
           hash = true

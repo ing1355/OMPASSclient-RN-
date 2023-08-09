@@ -175,6 +175,7 @@ public class Auth extends ReactContextBaseJavaModule {
         promptInfo = new BiometricPrompt.PromptInfo.Builder()
                 .setTitle(title)
                 .setNegativeButtonText("취소")
+                .setConfirmationRequired(false)
                 .build();
 
         runOnUiThread(() -> biometricPrompt.authenticate(promptInfo));

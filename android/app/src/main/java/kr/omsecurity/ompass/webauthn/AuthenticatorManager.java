@@ -700,8 +700,6 @@ public class AuthenticatorManager {
             e.printStackTrace();
         }
 
-
-
         byte[] clientDataHash = digest.digest(clientDataJSONData.getBytes(StandardCharsets.UTF_8));
 
         String clientDataHashB64ForRegister = Base64.encodeToString(clientDataHash, Base64.URL_SAFE | Base64.NO_WRAP).trim();
