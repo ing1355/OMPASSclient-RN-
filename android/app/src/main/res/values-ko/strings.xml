@@ -4,5 +4,5 @@
     <string name="dialog_select_credential">Select a Credential</string>
     <string name="notification_title_string">에서 OMPASS 인증 시도</string>
     <string name="notification_message_string">아이디로 로그인 요청</string>
-    <string name="channel_title">인증 알림</string>
+    <string name="default_notification_channel_id">인증 알림</string>
 </resources>

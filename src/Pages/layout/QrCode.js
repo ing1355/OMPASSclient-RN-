@@ -71,6 +71,7 @@ const QrCode = (props) => {
           return;
         } else {
           props.loadingToggle(true);
+          Vibration.vibrate()
           getDataByNonce(url, param, userId, (result) => {
             if(!result.accessKey) throw "fail"
             setQr_result(result);
@@ -79,7 +80,6 @@ const QrCode = (props) => {
             console.log('qr nonce fail !! : ' ,err)
             scanRef.current = false;
             props.loadingToggle(false);
-            Vibration.vibrate()
             RootNavigation.navigate('Auth_Fail', {
               type: url.includes('auth') ? 'OMPASSAuth' : 'OMPASSRegist',
               reason: translate('CODE002'),

@@ -24,6 +24,7 @@ import MenuSidebar from './Menu/MenuSidebar';
 import { AsyncStorageAuthenticationsKey, AsyncStorageCurrentAuthKey } from '../Constans/ContstantValues';
 import CustomButton from '../Components/CustomButton';
 import * as RootNavigation from '../Route/Router'
+import { CustomSystem } from '../Function/NativeModules';
 let { height } = Dimensions.get('window');
 let clickButton = false
 
@@ -90,7 +91,7 @@ const Home = ({
   const handleBackButton = () => {
     if(menuOpenRef.current) setMenuOpen(false)
     else {
-      backClickRef.current === 1 ? NativeModules.CustomSystem.ExitApp() : _spring();
+      backClickRef.current === 1 ? CustomSystem.ExitApp() : _spring();
     }
     return true;
   };

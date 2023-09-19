@@ -19,6 +19,11 @@ import { translate } from '../../../App';
 import { getVersion, getBuildNumber } from 'react-native-device-info';
 import * as RNLocalize from 'react-native-localize';
 import CustomOpacityButton from '../../Components/CustomOpacityButton';
+import { CustomConsoleLog, getDataByLogFile, sendLogFileToServer } from '../../Function/GlobalFunction';
+import { ENVIRONMENT } from '@env'
+import { useNavigation } from '@react-navigation/native';
+
+const isDev = ENVIRONMENT === 'dev'
 
 const animationDuration = 725
 
@@ -37,6 +42,9 @@ const MenuSidebar = ({ opened, toggle }) => {
   const animation = useRef(new Animated.Value(1)).current;
   const backgroundAnimation = useRef(new Animated.Value(0)).current;
   const openedRef = useRef(opened)
+  const [logChecked, setLogChecked] = useState(false)
+  const [hasLogs,setHasLogs] = useState(false)
+  const navigation = useNavigation()
   
   const animationInterpolation = animation.interpolate({
     inputRange: [0, 0.5, 1],
@@ -57,8 +65,30 @@ const MenuSidebar = ({ opened, toggle }) => {
     opacity: backgroundAnimation,
   };
 
+  const logCheck = async () => {
+    setLogChecked(true)
+    const log = await getDataByLogFile()
+    if(log) setHasLogs(true)
+    else setHasLogs(false)
+    setLogChecked(false)
+  }
+
+  useEffect(() => {
+    const subscribe = navigation.addListener('focus', async () => {
+      logCheck()
+    });
+    const unsubscribeBlur = navigation.addListener('blur', async () => { 
+      logCheck()
+    });
+    return () => {
+      subscribe()
+      unsubscribeBlur()
+    }
+  },[])
+
   useEffect(() => {
     if (!openedRef.current && opened) {
+      logCheck()
       createTimingAnimation(backgroundAnimation, {
         toValue: 0.6,
         duration: animationDuration
@@ -77,7 +107,7 @@ const MenuSidebar = ({ opened, toggle }) => {
     }
     openedRef.current = opened
   }, [opened]);
-
+  
   return (
     <>
       <Animated.View
@@ -203,6 +233,20 @@ const MenuSidebar = ({ opened, toggle }) => {
             </View>
           </CustomOpacityButton>
         </View>
+        {isDev && <Pressable style={[styles.feedback_container, {
+          bottom: 60
+        }]} onPress={() => {
+          CustomConsoleLog("touch send log file")
+          sendLogFileToServer(() => {
+            logCheck()
+          })
+        }} disabled={!hasLogs || logChecked}>
+          <Text style={[styles.feedback_text, (!hasLogs || logChecked) && {
+            color: 'rgba(0,0,0,.5)'
+          }]}>
+            서버로 로그 전송
+          </Text>
+        </Pressable>}
         <Pressable style={styles.feedback_container} onPress={() => {
           if (RNLocalize.getLocales()[0].languageCode === 'ko') {
             Linking.openURL(`https://docs.google.com/forms/d/e/1FAIpQLSf_S5Av-D6IHzEWFufFhAqicBuMmGafxHFcY6IJKXM_44xzlw/viewform?usp=pp_url&entry.1778377264=${Platform.OS === 'android' ? 'Android' : 'iOS'}&entry.249062392=${getVersion()}(${getBuildNumber()})`)

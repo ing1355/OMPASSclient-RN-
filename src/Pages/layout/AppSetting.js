@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageAppSettingKey } from '../../Constans/ContstantValues'
 import commonStyles from '../../styles/commonStyles'
 import CustomOpacityButton from '../../Components/CustomOpacityButton'
+import { CustomSystem } from '../../Function/NativeModules'
 
 const AppSetting = (props) => {
     const { navigation } = props
@@ -48,7 +49,7 @@ const AppSetting = (props) => {
             </View>}
             {Platform.OS === 'android' && <View style={commonStyles.settingRowContainerStyleByPlatform}>
                 <CustomOpacityButton style={commonStyles.settingRowContentStyleByPlatform} onPress={async () => {
-                    NativeModules.CustomSystem.GoToSetting()
+                    CustomSystem.GoToSetting()
                 }}>
                     <View style={[commonStyles.settingRowContentSubContainerStyleByPlatform]}>
                         <Text style={commonStyles.settingRowContentTextStyleByPlatform}>

@@ -37,8 +37,8 @@ android {
         applicationId "kr.omsecurity.ompass"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 85
-        versionName "1.3.3"
+        versionCode 102
+        versionName "1.3.4"
         buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
         multiDexEnabled true
         missingDimensionStrategy 'react-native-camera', 'mlkit' // <--- replace general with mlkit

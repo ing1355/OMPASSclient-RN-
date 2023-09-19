@@ -39,6 +39,7 @@ import { AsyncStorageAppSettingKey, AsyncStorageAuthenticationsKey, AsyncStorage
 import { settingChange } from '../global_store/actions/settingChange';
 import { CheckPermission } from '../Components/CheckPermissions';
 import { ENVIRONMENT } from '@env'
+import { CustomSystem } from '../Function/NativeModules';
 
 const isDev = ENVIRONMENT === 'dev'
 console.log('dev : ' ,isDev)
@@ -95,10 +96,10 @@ const Routes = ({ isDeprecated, isDeprecatedChange, firstSetting, setFirstSettin
     // if(Platform.OS === 'android') DeviceEventEmitter.removeAllListeners('isUsbConnectedEvent');
     if (!noTimeOut) {
       setTimeout(() => {
-        NativeModules.CustomSystem.ExitApp();
+        CustomSystem.ExitApp();
       }, 5000);
     } else {
-      NativeModules.CustomSystem.ExitApp();
+      CustomSystem.ExitApp();
     }
 
   }

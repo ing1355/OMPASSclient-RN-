@@ -90,7 +90,6 @@ public class AuthenticatorManager {
 
         try {
             ca = cf.generateCertificate(caInput);
-//            System.out.println("ca=" + ((X509Certificate) ca).getSubjectDN());
         } catch (CertificateException e) {
             e.printStackTrace();
         } finally {
@@ -273,7 +272,6 @@ public class AuthenticatorManager {
                         while ((responseLine = br.readLine()) != null) {
                             response.append(responseLine.trim());
                         }
-                        // System.out.println("DEBUG : " + response.toString());
 
                         JSONObject json = new JSONObject(response.toString());
                         if(json.has("Response")) {
@@ -364,7 +362,6 @@ public class AuthenticatorManager {
                 username,
                 userId);
 
-        // System.out.println("json test : " + credentialJson);
 
         AuthenticatorMakeCredentialOptions makeCredentialOptionsForAuthenticate = AuthenticatorMakeCredentialOptions.fromJSON(credentialJson);
         makeCredentialOptionsForAuthenticate.clientDataHash = clientDataHashForAuthentication;
@@ -465,7 +462,7 @@ public class AuthenticatorManager {
                     String b64AuthenticatorData = Base64.encodeToString(finalGetAssertionResult.authenticatorData, Base64.URL_SAFE | Base64.NO_WRAP).trim();
 
                     String jsonRegister = makeResponseJSONForAuthenticate(b64AuthenticatorData, b64Signature, b64SelectedCredentialUserHandle, b64ClientDataJSON, userId, pushToken, clientInfo);
-                     System.out.println("Authenticate Json Data : " + jsonRegister);
+
                     try (OutputStream os = conAuthenticate.getOutputStream()) {
                         byte[] input = jsonRegister.getBytes("utf-8");
                         os.write(input, 0, input.length);
@@ -483,7 +480,7 @@ public class AuthenticatorManager {
                         while ((responseLine = br.readLine()) != null) {
                             response.append(responseLine.trim());
                         }
-                        // System.out.println("DEBUG : " + response.toString());
+
                         JSONObject json = new JSONObject(response.toString());
                         String response_msg = json.getString("isSuccess");
                         Auth.authenticateToken = conAuthenticate.getHeaderField("Authorization");
@@ -527,7 +524,6 @@ public class AuthenticatorManager {
                               String displayName,
                               String redirectUri,
                               int did) {
-        System.out.println("domain : " + domain);
         return "{\"username\" : \"" + username + "\", \"displayName\": \"" + displayName + "\", \"domain\" : \"" + domain + "\", \"redirectUri\" : \"" + redirectUri + "\", \"did\" : " + did + "}";
     }
 
@@ -536,7 +532,6 @@ public class AuthenticatorManager {
     //
     public JSONObject preRegister(String username, String displayName, String redirectUri, int did) {
         String jsonString = getPreRegisterJson(username, displayName, redirectUri, did);
-        System.out.println("preRegister json : " + jsonString);
         String urlString = home + "/fido2/preregister";
         URL url = null;
         final JSONObject[] return_value = {new JSONObject()};
@@ -546,7 +541,7 @@ public class AuthenticatorManager {
             e.printStackTrace();
         }
         URL finalUrl = url;
-        // System.out.println("preRegister url : " + url);
+
         final long time = System.currentTimeMillis();
         final boolean[] isComplete = {false};
 
@@ -597,9 +592,9 @@ public class AuthenticatorManager {
                             response.append(responseLine.trim());
                         }
 
-                        // System.out.println("DEBUG : " + response.toString());
+
                         JSONObject json = new JSONObject(response.toString());
-                        System.out.println("Register Response : " + response.toString());
+
 
                         if(json.has("Response")) {
                             String temp = json.getString("Response");
@@ -760,7 +755,6 @@ public class AuthenticatorManager {
                     conRegister[0].setRequestProperty("Content-Type", "application/json; utf-8");
                     conRegister[0].setRequestProperty("Accept", "application/json");
                     conRegister[0].setConnectTimeout(5000);
-                    conRegister[0].setConnectTimeout(5000);
                     conRegister[0].setRequestProperty("accessKey", accessKey);
                     conRegister[0].setRequestProperty("Authorization", authorization);
                     conRegister[0].setDoOutput(true);
@@ -768,7 +762,7 @@ public class AuthenticatorManager {
                     String b64ClientDataJSON = Base64.encodeToString(clientDataJSONData.getBytes(StandardCharsets.UTF_8), Base64.URL_SAFE | Base64.NO_WRAP);
 
                     String jsonRegister = makeResponseJSONForRegister(cborB64, b64ClientDataJSON, userId, pushToken, clientInfo);
-                    // System.out.println("Register Json : " + jsonRegister);
+
 
                     try (OutputStream os = conRegister[0].getOutputStream()) {
                         byte[] input = jsonRegister.getBytes("utf-8");
@@ -787,7 +781,7 @@ public class AuthenticatorManager {
                         while ((responseLine = br.readLine()) != null) {
                             response.append(responseLine.trim());
                         }
-                        // System.out.println("DEBUG : " + response.toString());
+
                         JSONObject json = new JSONObject(response.toString());
                         String response_msg = json.getString("isSuccess");
                         if(response_msg.equals("true")) {

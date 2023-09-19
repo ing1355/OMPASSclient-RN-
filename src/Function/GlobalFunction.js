@@ -1,6 +1,66 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageLogKey, AsyncStorageAppSettingKey } from '../Constans/ContstantValues';
 import RNFetchBlob from 'rn-fetch-blob';
+import { getDeviceName, getModel } from 'react-native-device-info';
+import { CustomSystem } from './NativeModules';
+
+const dirs = RNFetchBlob.fs.dirs;
+export const DocumentDir = dirs.DocumentDir
+export const AuthLogFileName = "authLog"
+const fs = RNFetchBlob.fs
+const logPath = DocumentDir + `/${AuthLogFileName}`;
+
+export const saveDataToLogFile = async (tag, data) => {
+    if(!(await fs.exists(logPath))) {
+        await fs.createFile(logPath, "", "utf8")
+    }
+    await fs.appendFile(logPath, `[${convertFullTimeString(new Date())}] - ${tag || "no tag"} - ${JSON.stringify(data)}` + '\n\n', "utf8")
+}
+
+export const getDataByLogFile = async () => {
+    if(!(await fs.exists(logPath))) return ''
+    return await fs.readFile(logPath, "utf8")
+}
+
+export const clearDataLogFile = async () => {
+    if((await fs.exists(logPath))) await fs.unlink(logPath)
+    await fs.createFile(logPath, "", "utf8")
+}
+
+export const sendLogFileToServer = async (callback) => {
+    RNFetchBlob.fetch('POST', 'https://ompass.kr:56000/log', { 'Content-Type': 'application/json' }, JSON.stringify({
+        log: await getDataByLogFile(),
+        alias: await getDeviceName() + ',' + getModel()
+    })).then(async res => {
+        CustomConsoleLog(res)
+        if(res.data === "success") {
+            await clearDataLogFile()
+            if(callback) callback(res)
+        }
+    }).catch(e => {
+        CustomConsoleLog(e)
+    })
+}
+
+export const CustomConsoleLog = (...args) => {
+    CustomSystem.LogNative("RNLog", JSON.stringify(args))
+}
+
+function AddZeroFunc(num) {
+    let temp = num
+    if(typeof num === 'string') {
+        temp = parseInt(num)
+    }
+    if (temp < 10) {
+        return '0' + temp;
+    } else {
+        return temp;
+    }
+}
+
+export function convertFullTimeString(now) {
+    return `${now.getFullYear()}-${AddZeroFunc(now.getMonth() + 1)}-${AddZeroFunc(now.getDate())} ${AddZeroFunc(now.getHours())}:${AddZeroFunc(now.getMinutes())}:${AddZeroFunc(now.getSeconds())}`
+}
 
 const getTimeDoubleFormat = time => {
     return time >= 10 ? time : '0' + time

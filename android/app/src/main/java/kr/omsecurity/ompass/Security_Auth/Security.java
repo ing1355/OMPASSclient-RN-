@@ -5,17 +5,21 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 import androidx.annotation.NonNull;
-import com.facebook.react.bridge.Callback;
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
-import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.*;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.messaging.FirebaseMessaging;
 import kr.omsecurity.ompass.Constants.Constants;
+import kr.omsecurity.ompass.webauthn.exceptions.VirgilException;
+import kr.omsecurity.ompass.webauthn.models.PublicKeyCredentialSource;
+import kr.omsecurity.ompass.webauthn.util.CredentialSafe;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 
 public class Security extends ReactContextBaseJavaModule {
     private static ReactApplicationContext reactContext;
@@ -204,6 +208,22 @@ public class Security extends ReactContextBaseJavaModule {
         } catch (Exception e) {
             e.printStackTrace();
             errorCallback.invoke("fail");
+        }
+    }
+
+    @ReactMethod
+    public void getRegisteredCredential(String domain, String userId, Promise promise) {
+        try {
+            CredentialSafe credentialSafe = new CredentialSafe(reactContext,false, false);
+            for (PublicKeyCredentialSource publicKeyCredentialSource : credentialSafe.getKeysForEntity(domain)) {
+                Log.d("credential", publicKeyCredentialSource.keyPairAlias);
+                Log.d("credential", publicKeyCredentialSource.rpId);
+                Log.d("credential", publicKeyCredentialSource.userDisplayName);
+            }
+//            promise.resolve();
+        } catch (VirgilException e) {
+            promise.reject("Get credential fail", "Credential is not exist");
+            throw new RuntimeException(e);
         }
     }
 

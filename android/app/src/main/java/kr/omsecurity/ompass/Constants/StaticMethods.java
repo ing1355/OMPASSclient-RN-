@@ -1,14 +1,27 @@
 package kr.omsecurity.ompass.Constants;
 
+import android.content.Context;
+import android.util.Log;
+import com.facebook.react.ReactInstanceEventListener;
+import com.facebook.react.ReactInstanceManager;
+import com.facebook.react.ReactNativeHost;
 import com.facebook.react.bridge.*;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
+import kr.omsecurity.ompass.CustomSystem;
+import kr.omsecurity.ompass.MainApplication;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 
 public class StaticMethods {
@@ -126,6 +139,35 @@ public class StaticMethods {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return 0; // 에러 발생 시 0을 반환하거나 다른 예외 처리를 수행할 수 있습니다.
+        }
+    }
+
+    public static void sendEventToReact(ReactNativeHost host, String eventName, String data) {
+        ReactApplicationContext context = (ReactApplicationContext) host.getReactInstanceManager().getCurrentReactContext();
+        if(context != null) {
+            context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit(eventName, data);
+            CustomSystem.addLogWithData(host, "sendEventToReact context is not null", eventName);
+        } else {
+            CustomSystem.addLogWithData(host, "sendEventToReact context is null", eventName);
+            host.getReactInstanceManager().addReactInstanceEventListener(new ReactInstanceEventListener() {
+                public void onReactContextInitialized(ReactContext validContext) {
+                    CustomSystem.addLogWithData(host, "sendEventToReact context initialized by event listener", eventName);
+                    host.getReactInstanceManager().getCurrentReactContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                            .emit(eventName, data);
+                    host.getReactInstanceManager().removeReactInstanceEventListener(this);
+                }
+            });
+        }
+    }
+
+    public static String mergePushDataWithMessageId(String pushData, String mId) {
+        try {
+            JSONObject json = new JSONObject(pushData);
+            json.put("mId", mId);
+            return json.toString();
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
         }
     }
 }

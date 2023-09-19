@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Text, View, Image, NativeModules, Animated, Easing, Platform } from 'react-native';
+import { Text, View, Image, NativeModules, Animated, Easing, Platform, AppState } from 'react-native';
 import { RFPercentage } from 'react-native-responsive-fontsize';
 import { useDispatch, useSelector } from 'react-redux';
 import { translate } from '../../../App';
@@ -8,6 +8,7 @@ import styles from '../../styles/layout/Auth_Complete';
 import { loadingToggle } from '../../global_store/actions/loadingToggle';
 import CustomOpacityButton from '../../Components/CustomOpacityButton';
 import * as RootNavigation from '../../Route/Router'
+import { CustomSystem } from '../../Function/NativeModules';
 
 let timerId = 0
 const clearTime = 1
@@ -35,9 +36,12 @@ const Auth_Complete = (props) => {
     const [text, setText] = useState('Regist');
     const animation = useRef(new Animated.Value(0)).current;
     const overlayAnimation = useRef(new Animated.Value(0)).current;
+    const appState = useRef(AppState.currentState);
+    const backgroundChanged = useRef(false)
     
     useEffect(() => {
         const unsubscribe = props.navigation.addListener('focus', () => {
+            backgroundChanged.current = false
             setText(props.route.params.type);
             setTimeout(() => {
                 _loadingToggle(false);
@@ -59,8 +63,15 @@ const Auth_Complete = (props) => {
                 })
             })
             if(Platform.OS === 'android' && exitAfterAuth && !props.route.params.type.includes('Regist')) {
+                const handleAppStateChange = next => {
+                    if(appState.current === 'active' && next === 'background') {
+                        backgroundChanged.current = true
+                    }
+                }
+                AppState.addEventListener('change', handleAppStateChange)
                 setTimeout(() => {
-                    NativeModules.CustomSystem.ExitApp()
+                    if(!backgroundChanged.current) CustomSystem.ExitApp()
+                    else RootNavigation.reset()
                 }, clearTime * 1000 + animationDuration);
             }
         });

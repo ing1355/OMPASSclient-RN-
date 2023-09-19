@@ -1,26 +1,34 @@
 package kr.omsecurity.ompass;
 
-import static android.content.Context.NOTIFICATION_SERVICE;
-import static androidx.core.content.ContextCompat.getSystemService;
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.annotation.SuppressLint;
 import android.app.NotificationManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Process;
 import android.provider.Settings;
 
+import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.facebook.react.ReactInstanceManager;
+import com.facebook.react.ReactNativeHost;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import kr.omsecurity.ompass.Constants.Constants;
 import kr.omsecurity.ompass.Constants.StaticMethods;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Objects;
 
 public class CustomSystem extends ReactContextBaseJavaModule {
@@ -40,8 +48,14 @@ public class CustomSystem extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void ExitApp() {
-        Objects.requireNonNull(reactContext.getCurrentActivity()).finishAndRemoveTask();
-        System.exit(0);
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                Objects.requireNonNull(reactContext.getCurrentActivity()).moveTaskToBack(true);
+                Objects.requireNonNull(reactContext.getCurrentActivity()).finishAndRemoveTask();
+                Process.killProcess(Process.myPid());
+            }
+        }, 1);
     }
 
     @ReactMethod
@@ -67,6 +81,11 @@ public class CustomSystem extends ReactContextBaseJavaModule {
         }
     }
 
+    @ReactMethod
+    public void LogNative(String tag, String txt) {
+        Log.d(tag != null ? tag : "ProdLog", txt);
+    }
+
     @RequiresApi(Build.VERSION_CODES.O)
     private Intent notificationSettingOreo(ReactContext context) {
         Intent intent = new Intent();
@@ -83,5 +102,53 @@ public class CustomSystem extends ReactContextBaseJavaModule {
         intent.putExtra("app_uid", context.getApplicationInfo().uid);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         return intent;
+    }
+
+    public static void setReactApplicationContext(ReactApplicationContext context) {
+        reactContext = context;
+    }
+
+    public static ReactApplicationContext getReactContext() {
+        return reactContext;
+    }
+
+    public static void addLogWithData(ReactNativeHost host, String tag, String data) {
+        ReactApplicationContext context = (ReactApplicationContext) host.getReactInstanceManager().getCurrentReactContext();
+        if(context != null) {
+            File file = new File(context.getFilesDir().getAbsolutePath() + "/" + Constants.LogFileName);
+            writeToFileLog(file, tag, data);
+        } else {
+            host.getReactInstanceManager().addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
+                public void onReactContextInitialized(ReactContext validContext) {
+                    File file = new File(host.getReactInstanceManager().getCurrentReactContext().getFilesDir().getAbsolutePath() + "/" + Constants.LogFileName);
+                    writeToFileLog(file, tag, data);
+                    host.getReactInstanceManager().removeReactInstanceEventListener(this);
+                }
+            });
+        }
+    }
+
+    private static void writeToFileLog(File file, String tag, String data) {
+        Date date = new Date(System.currentTimeMillis());
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String time = format.format(date);
+        if(BuildConfig.DEBUG) Log.d("notification", tag + " " + data);
+        if(!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
+            writer.write("[" + time + "] - " + tag + " - " + data);
+            writer.newLine();
+            writer.newLine();
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

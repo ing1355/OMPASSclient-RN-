@@ -290,9 +290,7 @@ public class Authenticator {
 
         // 4-5. Get keys that match this relying party ID
         List<PublicKeyCredentialSource> credentials = this.credentialSafe.getKeysForEntity(options.rpId);
-//        for(PublicKeyCredentialSource source : credentials) {
-//            System.out.println("PublicKeyCredentialSource List : " + source.keyPairAlias + " " + source.rpId + " " + source.otherUI + " " + source.userDisplayName + "\n" + source.toString());
-//        }
+
         // 2-3. Parse allowCredentialDescriptorList
         if (options.allowCredentialDescriptorList != null && options.allowCredentialDescriptorList.size() > 0) {
             List<PublicKeyCredentialSource> filteredCredentials = new ArrayList<>();

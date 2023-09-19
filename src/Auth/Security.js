@@ -13,8 +13,13 @@ const {
     resetErrorCount, 
     InitSecurity, 
     Verification,
-    isVerification
+    isVerification,
+    getRegisteredCredential
 } = NativeModules.Security;
+
+export async function getRegisteredCredentialsByDomain(domain, userId) {
+    return await getRegisteredCredential(domain, userId)
+}
 
 export function VerificationSuccess(suc_callback) {
     Verification(cal => {

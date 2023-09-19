@@ -10,12 +10,16 @@ import { translate } from '../../App';
 import { CustomConfirmModal } from '../Components/CustomAlert';
 import { GetClientInfo } from './GetClientInfo';
 import { AsyncStorageAuthenticationsKey, AsyncStorageCurrentAuthKey, AsyncStorageFcmTokenKey } from '../Constans/ContstantValues';
-import { saveAuthLogByResult } from './GlobalFunction';
+import { saveAuthLogByResult, saveDataToLogFile } from './GlobalFunction';
 import RegisterAuthentication from '../Auth/RegisterAuthentication';
 import ActionCreators from '../global_store/actions';
 import * as RNLocalize from 'react-native-localize';
 import { changeNotificationToggle } from '../global_store/actions/Notification';
+import { ENVIRONMENT } from '@env'
+import { CustomSystem } from './NativeModules';
 
+const isDev = ENVIRONMENT === 'dev'
+const NoLogKeys = ['앱 재설치', 'SSLerror', 'CODE003']
 const isKr = RNLocalize.getLocales()[0].languageCode === 'ko'
 
 const RightMsg = (title, description) => {
@@ -61,10 +65,6 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
   }))
   const [modalOpen, setModalOpen] = useState(false);
   const dispatch = useDispatch()
-  
-  useEffect(() => {
-    if(modalOpen) Vibration.vibrate()
-  },[modalOpen])
 
   const cancelInitFunction = () => {
     setAuthData(initAuthData)
@@ -102,7 +102,7 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
 
   const AuthCompleteCallback = (type) => {
     const callback = () => {
-      if(procedure === 'auth') NativeModules.CustomSystem.cancelNotification(accessKey)
+      if(procedure === 'auth') CustomSystem.cancelNotification(accessKey)
       if (!appSettings.exitAfterAuth && clientInfo.browser && clientInfo.browser.includes('Mobile')) {
         BackHandler.exitApp()
       }
@@ -133,6 +133,7 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
 
   const callbackFunc = async (isSameDevice) => {
     if (procedure === 'reg') {
+      saveDataToLogFile("Register Request(AuthData)", authData)
       webAuthn.PreRegister(
         fidoAddress,
         domain,
@@ -144,6 +145,7 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
         function (err) {
           console.log('pre register err ? : ', err);
           loadingToggle(false);
+          saveDataToLogFile("PreRegister Fail(Response Json)", err)
           saveAuthLogByResult('reg', false, authData)
           setTimeout(() => {
             AuthErrorCallback('OMPASSRegist', err, true)
@@ -151,7 +153,8 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
         },
         (suc) => {
           const { authorization, challenge, userId } =
-            Platform.OS === 'android' ? JSON.parse(suc) : suc;
+          Platform.OS === 'android' ? JSON.parse(suc) : suc;
+          saveDataToLogFile("PreRegister Success(Response Json)", {authorization, challenge, userId})
           console.log('preRigster suc : ', suc);
           const Register_Callback = async () => {
             webAuthn.Register(
@@ -167,11 +170,13 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
               userId,
               function (err) {
                 console.log('register err ? : ', err);
+                saveDataToLogFile("Register Fail(Response Json)", err)
                 saveAuthLogByResult('reg', false, authData)
                 AuthErrorCallback('OMPASSRegist', err)
               },
               async (msg) => {
                 loadingToggle(false);
+                saveDataToLogFile("Register Success(Response Json)", msg)
                 saveAuthLogByResult('reg', true, authData)
                 setTimeout(() => {
                   AuthCompleteCallback('OMPASSRegist')
@@ -184,16 +189,24 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
       );
     } else {
       const currentAuth = await AsyncStorage.getItem(AsyncStorageCurrentAuthKey);
+      saveDataToLogFile("Authentication Request(AuthData)", authData)
       webAuthn.PreAuthenticate(fidoAddress, domain, accessKey, redirectUri, Number(did), username, (err) => {
         console.log('pre authenticate err ? : ', err);
-        saveAuthLogByResult('auth', false, authData);
+        saveDataToLogFile("PreAuthenticate Fail(Response Json)", err)
+        if(!NoLogKeys.find(_ => err.includes(_))) {
+          saveAuthLogByResult('auth', false, authData);
+        }
         AuthErrorCallback("OMPASSAuth", err, true)
       }, (msg) => {
         const { authorization, challenge, userId } = Platform.OS === 'android' ? JSON.parse(msg) : msg;
+        saveDataToLogFile("PreAuthenticate Success(Response Json)", {authorization, challenge, userId})
         const Auth_Callback = async () => {
           webAuthn.Authenticate(await AsyncStorage.getItem(AsyncStorageFcmTokenKey), fidoAddress, domain, accessKey, username, authorization, challenge, userId, await GetClientInfo(), (err) => {
             console.log('authenticate err ? : ', err);
-            saveAuthLogByResult('auth', false, authData);
+            saveDataToLogFile("Authenticate Fail(Authenticate Response Json)", err)
+            if(!NoLogKeys.find(_ => err.includes(_))) {
+              saveAuthLogByResult('auth', false, authData);
+            }
             AuthErrorCallback("OMPASSAuth", err)
           }, (msg) => {
             if (isSameDevice === 'false') {
@@ -220,6 +233,7 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
               //     console.log(err);
               //   });
             } else {
+              saveDataToLogFile("Authenticate Success(Response Json)", msg)
               saveAuthLogByResult('auth', true, authData);
               setTimeout(() => {
                 // setExecute(false);
@@ -237,7 +251,6 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
     if (tempAuthData.accessKey && isForgery.isChecked && isRoot.isChecked && usbConnected.isChecked && needUpdate.isChecked && !(isForgery.isForgery || isRoot.isRoot || usbConnected.usbConnected || needUpdate.needUpdate)) {
       const withAuthCheck = async () => {
         if (await check_auth_info()) {
-          console.log('key ?? : ' ,accessKey)
           // if (execute && true) {
           if (notificationToggle) dispatch(changeNotificationToggle(false))
           if(modalOpen) {

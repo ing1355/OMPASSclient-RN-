@@ -1,6 +1,8 @@
 package kr.omsecurity.ompass;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Application;
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.WindowManager;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
@@ -22,9 +25,11 @@ import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
 
+import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
-import com.facebook.react.modules.core.DeviceEventManagerModule;
+import kr.omsecurity.ompass.Constants.StaticMethods;
 import org.devio.rn.splashscreen.SplashScreen;
+import org.jetbrains.annotations.NotNull;
 
 public class MainActivity extends ReactActivity {
 
@@ -40,13 +45,20 @@ public class MainActivity extends ReactActivity {
   @Override
   protected ReactActivityDelegate createReactActivityDelegate() {
     return new MainActivityDelegate(this, getMainComponentName()) {
-      @Nullable
       @Override
       protected Bundle getLaunchOptions() {
-        String searchedData = getIntent().getStringExtra("data");
-//        if(searchedData != null) setIntent(null);
+        Intent intent = getIntent();
         Bundle bundle = new Bundle();
-        bundle.putString("data", searchedData);
+        if(intent.hasExtra("pushData")) {
+          String pushData = intent.getStringExtra("pushData");
+          if(pushData != null) {
+            CustomSystem.addLogWithData(getReactNativeHost(), "getLaunchOptions", pushData);
+            bundle.putString("data", pushData);
+          }
+          intent.removeExtra("pushData");
+        } else {
+          CustomSystem.addLogWithData(getReactNativeHost(), "getLaunchOptions", "No Extra Data");
+        }
         return bundle;
       }
     };
@@ -97,25 +109,20 @@ public class MainActivity extends ReactActivity {
   @Override
   public void onNewIntent(Intent intent) {
     super.onNewIntent(intent);
-    String pushData = intent.getStringExtra("data");
-    if (pushData != null) {
-//      setIntent(null);
-      ReactInstanceManager reactInstanceManager = getReactNativeHost().getReactInstanceManager();
-      ReactContext reactContext = reactInstanceManager.getCurrentReactContext();
-      if (reactContext != null) {
-        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                .emit("pushEvent", pushData);
-      } else {
-        reactInstanceManager.addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
-          @Override
-          public void onReactContextInitialized(ReactContext context) {
-            context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                    .emit("pushEvent", pushData);
-            reactInstanceManager.removeReactInstanceEventListener(this);
-          }
-        });
-      }
+    if(intent.hasExtra("pushData")) {
+      String pushData = intent.getStringExtra("pushData");
+      CustomSystem.addLogWithData(getReactNativeHost(), "onNewIntent", pushData);
+      StaticMethods.sendEventToReact(getReactNativeHost(),"pushEvent", pushData);
+      intent.removeExtra("pushData");
+    } else {
+      CustomSystem.addLogWithData(getReactNativeHost(), "onNewIntent", "No Extra Data");
     }
+  }
+
+  @Override
+  public void onRestart() {
+    super.onRestart();
+//    CustomSystem.addLogWithData(getReactNativeHost(), "onRestart", );
   }
 
   @Override
@@ -126,27 +133,49 @@ public class MainActivity extends ReactActivity {
     activityReference = this;
     createFlag = false;
     getWindow().addFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+
+    Intent intent = getIntent();
+    if(intent.hasExtra("pushData")) {
+      String pushData = intent.getStringExtra("pushData");
+      String mId = intent.getStringExtra("google.message_id");
+      String mergeData = StaticMethods.mergePushDataWithMessageId(pushData, mId);
+      CustomSystem.addLogWithData(getReactNativeHost(), "onCreate", mergeData);
+      StaticMethods.sendEventToReact(getReactNativeHost(), "pushOpenedApp", mergeData);
+      intent.removeExtra("pushData");
+    } else {
+      CustomSystem.addLogWithData(getReactNativeHost(), "onCreate", "No Extra Data");
+    }
+
+    NotificationManager notificationManager =
+            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      String channelId = getApplicationContext().getResources().getString(R.string.default_notification_channel_id);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//        NotificationChannelGroup group = new NotificationChannelGroup(channelId, channelId);
+//        notificationManager.createNotificationChannelGroup(group);
+        NotificationChannel channel = new NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH);
+//        channel.setGroup(channelId);
+        notificationManager.createNotificationChannel(channel);
+//        if(notificationManager.getNotificationChannelGroup(channelId) == null) {
+//          NotificationChannelGroup group = new NotificationChannelGroup(channelId, channelId);
+//          notificationManager.createNotificationChannelGroup(group);
+//          group.setDescription("group desc test");
+//          if(notificationManager.getNotificationChannel(channelId) == null) {
+//            NotificationChannel channel = new NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH);
+//            channel.setDescription("channel desc test");
+//            channel.setGroup(channelId);
+//            notificationManager.createNotificationChannel(channel);
+//          }
+//        }
+      }
+
+    }
   }
 
   @Override
   protected void onResume() {
     super.onResume();
     isActivityForeground = true;
-    NotificationManager notificationManager =
-            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-      String channelId = getApplicationContext().getResources().getString(R.string.channel_title);
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-        if(notificationManager.getNotificationChannelGroup(channelId) == null) {
-          NotificationChannelGroup group = new NotificationChannelGroup(channelId, channelId);
-          notificationManager.createNotificationChannelGroup(group);
-          if(notificationManager.getNotificationChannel(channelId) == null) {
-            NotificationChannel channel = new NotificationChannel(channelId, channelId, NotificationManager.IMPORTANCE_HIGH);
-            notificationManager.createNotificationChannel(channel);
-          }
-        }
-      }
-    }
   }
 
   @Override
@@ -154,6 +183,12 @@ public class MainActivity extends ReactActivity {
     super.onPause();
     isActivityForeground = false;
     createFlag = true;
+//    NotificationManager notificationManager =
+//            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+//    String channelId = getApplicationContext().getResources().getString(R.string.channel_title);
+//    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//      notificationManager.deleteNotificationChannel(channelId);
+//    }
   }
 
   @Override

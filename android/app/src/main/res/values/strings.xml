@@ -4,6 +4,5 @@
     <string name="dialog_select_credential">Select a Credential</string>
     <string name="notification_title_string">OMPASS Authentication From</string>
     <string name="notification_message_string">Login request for</string>
-    <string name="default_notification_channel_id" translatable="false">Channel ID</string>
-    <string name="channel_title">Authentication Notification</string>
+    <string name="default_notification_channel_id">Authentication Notification</string>
 </resources>

@@ -43,7 +43,7 @@ const OTPItem = ({ data, opened, setOpened, isFirst }) => {
             createOtp(domain, userName, uuid)
         }, 1000 * tick);
     }
-
+    
     return <View style={{
         borderTopLeftRadius: 15,
         borderTopRightRadius: 15,

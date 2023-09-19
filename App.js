@@ -17,8 +17,8 @@ import { push_function } from './src/Function/PushFunctions';
 import { I18n } from 'i18n-js';
 import { AsyncStorageFcmTokenKey } from './src/Constans/ContstantValues';
 import * as RootNavigation from './src/Route/Router'
-import { getCurrentFullDateTime, getDataByNonce } from './src/Function/GlobalFunction';
-import { CustomNativeEventEmitter, getToken } from './src/Function/NativeModules';
+import { convertFullTimeString, getDataByNonce, saveDataToLogFile } from './src/Function/GlobalFunction';
+import { CustomNativeEventEmitter, CustomSystem, getToken } from './src/Function/NativeModules';
 import { Platform } from 'react-native';
 
 LogBox.ignoreAllLogs();
@@ -93,9 +93,16 @@ const App = (props) => {
   const pushCallback = async (data) => {
     push_function(data, res => {
       const result = JSON.parse(res)
-      if(!result.sessionExpirationTime || result.sessionExpirationTime - new Date().getTime() > 0) {
+      const currentTime = new Date().getTime()
+      console.log(`Server Expire Time : ${convertFullTimeString(new Date(result.sessionExpirationTime))}`)
+      saveDataToLogFile("Push Callback Time1", `Server Expire Time : ${convertFullTimeString(new Date(result.sessionExpirationTime))}`)
+      if(result.mId) saveDataToLogFile("Push Callback Time2", `Message Id Time : ${convertFullTimeString(new Date(Number(result.mId.split(':')[1].split('%')[0].slice(0,-3))))}`)
+      if(tempRef.current.accessKey) saveDataToLogFile("Push Callback TempData", tempRef.current) 
+      saveDataToLogFile("Push Callback Data", result)
+      if(!result.sessionExpirationTime || (result.sessionExpirationTime - currentTime) > 0) {
         if(result.accessKey !== tempRef.current.accessKey) {
           setFidoType('auth')
+          Vibration.vibrate()
           setPush_result_temp(result)
         }
       }
@@ -108,21 +115,32 @@ const App = (props) => {
     }
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     if(Platform.OS === 'ios') {
-      const pendingPush = NativeModules.CustomSystem.checkPendingPush()
+      const pendingPush = CustomSystem.checkPendingPush()
       if(pendingPush) checkAuthenticatePushData(pendingPush.data)
+      saveDataToLogFile("iOS Opened Push", pendingPush.data)
     } else {
-      if(props && props.data) checkAuthenticatePushData(props.data)
+      if(props && props.data) {
+        saveDataToLogFile("Android Opened Push1", props.data)
+        checkAuthenticatePushData(props.data)
+      }
     }
     // const back_handle = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
     const handleLocalizationChange = () => {
       setI18nConfig();
     };
     _getToken()
+    saveDataToLogFile("register event listener pushEvent")
     CustomNativeEventEmitter.addListener('pushEvent', data => {
-      if(Platform.OS === 'ios') NativeModules.CustomSystem.cancelPendingPush()
+      console.log('pushEvent')
+      saveDataToLogFile("Received PushEvent", Platform.OS === 'android' ? data : data.data)
+      if(Platform.OS === 'ios') CustomSystem.cancelPendingPush()
       checkAuthenticatePushData(Platform.OS === 'android' ? data : data.data)
+    })
+    CustomNativeEventEmitter.addListener("pushOpenedApp", (data) => {
+      saveDataToLogFile("Android Opened Push2", data)
+      checkAuthenticatePushData(data)
     })
     RNLocalize.addEventListener('change', handleLocalizationChange);
     Linking.getInitialURL().then(url => {
@@ -133,6 +151,7 @@ const App = (props) => {
     Linking.addEventListener('url', ({ url }) => {
       if (url) appLinkCallback(url)
     })
+  
     return () => {
       // RNLocalize.removeEventListener('change', handleLocalizationChange);
       // BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
@@ -147,22 +166,25 @@ const App = (props) => {
       params[match[1]] = match[2]
     }
     const type = params.url.includes('auth') ? 'OMPASSAuth' : 'OMPASSRegist'
-    
+    saveDataToLogFile("AppLink Callback")
     getDataByNonce(params.url, params.nonce, params.userId, (data) => {
       if (data.error) {
-        Vibration.vibrate()
+        saveDataToLogFile("getDataByNonce Fail(params)", params)
         RootNavigation.navigate('Auth_Fail', {
           type,
           reason: translate('CODE002'),
         });
       } else {
+        saveDataToLogFile("getDataByNonce Success(params)", params)
+        saveDataToLogFile("getDataByNonce Success(Response Json)", data)
         if(data.accessKey !== tempRef.current.accessKey) {
+          Vibration.vibrate()
           setPush_result_temp(data)
         }
       }
     }, (err) => {
       console.log(err)
-      Vibration.vibrate()
+      saveDataToLogFile("getDataByNonce Fail(catch)", err)
       RootNavigation.navigate('Auth_Fail', {
         type,
         reason: err && (err.error || err),

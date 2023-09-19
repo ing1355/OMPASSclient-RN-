@@ -89,7 +89,6 @@ static NSString *const kRNConcurrentRoot = @"concurrentRoot";
 
 - (void) userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
     NSDictionary *userInfo = notification.request.content.userInfo;
-    NSLog(@"푸시 데이터1 : %@", userInfo);
     if (@available(iOS 14.0, *)) {
       completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionBanner | UNNotificationPresentationOptionList | UNNotificationPresentationOptionBadge);
     } else {

@@ -7,63 +7,63 @@ import LogItem from './LogItem';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageLogKey } from '../../../Constans/ContstantValues';
 
-const profile1 = {
-    username: 'hozzi@omsecurity.kr',
-    OS: 'Mac 10.15',
-    Browser: 'Safari Mobile',
-    GPU: 'Apple GPU',
-    logs: [
-        {
-            createdAt: '2022-12-07 11:47:30',
-            result: true,
-            type: 'auth'
-        },
-        {
-            createdAt: '2022-12-07 11:47:30',
-            result: false,
-            type: 'auth'
-        },
-        {
-            createdAt: '2022-12-07 11:47:30',
-            result: true,
-            type: 'reg'
-        },
-        {
-            createdAt: '2022-12-07 11:47:30',
-            result: false,
-            type: 'reg'
-        },
-        {
-            createdAt: '2022-12-07 11:47:30',
-            result: true,
-            type: 'reg'
-        },
-    ]
-}
-const profile2 = {
-    username: 'hozzi2@omsecurity.kr',
-    OS: 'Mac 10.15',
-    Browser: 'Safari Mobile',
-    GPU: 'Apple GPU',
-    logs: []
-}
+// const profile1 = {
+//     username: 'hozzi@omsecurity.kr',
+//     OS: 'Mac 10.15',
+//     Browser: 'Safari Mobile',
+//     GPU: 'Apple GPU',
+//     logs: [
+//         {
+//             createdAt: '2022-12-07 11:47:30',
+//             result: true,
+//             type: 'auth'
+//         },
+//         {
+//             createdAt: '2022-12-07 11:47:30',
+//             result: false,
+//             type: 'auth'
+//         },
+//         {
+//             createdAt: '2022-12-07 11:47:30',
+//             result: true,
+//             type: 'reg'
+//         },
+//         {
+//             createdAt: '2022-12-07 11:47:30',
+//             result: false,
+//             type: 'reg'
+//         },
+//         {
+//             createdAt: '2022-12-07 11:47:30',
+//             result: true,
+//             type: 'reg'
+//         },
+//     ]
+// }
+// const profile2 = {
+//     username: 'hozzi2@omsecurity.kr',
+//     OS: 'Mac 10.15',
+//     Browser: 'Safari Mobile',
+//     GPU: 'Apple GPU',
+//     logs: []
+// }
 
-const mockData = [
-    {
-        domain: 'https://naver.com',
-        datas: [
-            profile1,
-            profile2
-        ]
-    },
-    {
-        domain: 'https://ompass.kr:4002',
-        datas: [
-            profile1,
-            profile2
-        ]
-    }
-]
+// const mockData = [
+//     {
+//         domain: 'https://naver.com',
+//         datas: [
+//             profile1,
+//             profile2
+//         ]
+//     },
+//     {
+//         domain: 'https://ompass.kr:4002',
+//         datas: [
+//             profile1,
+//             profile2
+//         ]
+//     }
+// ]
 
 const Logs = (props) => {
     const [list_data, setList_data] = useState([]);
