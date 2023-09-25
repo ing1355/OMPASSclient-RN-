@@ -14,6 +14,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.config.ReactFeatureFlags;
 import com.facebook.soloader.SoLoader;
 
+import com.microsoft.codepush.react.CodePush;
 import kr.omsecurity.ompass.Constants.Constants;
 import kr.omsecurity.ompass.Security_Auth.SecurityPackage;
 import kr.omsecurity.ompass.newarchitecture.MainApplicationReactNativeHost;
@@ -52,6 +53,11 @@ public class MainApplication extends Application implements ReactApplication {
           // Packages that cannot be autolinked yet can be added manually here, for example:
           // packages.add(new MyReactNativePackage());
           return packages;
+        }
+
+        @Override
+        protected String getJSBundleFile() {
+          return CodePush.getJSBundleFile();
         }
 
         @Override

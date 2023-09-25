@@ -20,6 +20,7 @@ import * as RootNavigation from './src/Route/Router'
 import { convertFullTimeString, getDataByNonce, saveDataToLogFile } from './src/Function/GlobalFunction';
 import { CustomNativeEventEmitter, CustomSystem, getToken } from './src/Function/NativeModules';
 import { Platform } from 'react-native';
+import { silencePush, silencePushClear } from '.';
 
 LogBox.ignoreAllLogs();
 const i18n = new I18n()
@@ -91,6 +92,7 @@ const App = (props) => {
   },[push_result_temp])
 
   const pushCallback = async (data) => {
+    silencePushClear()
     push_function(data, res => {
       const result = JSON.parse(res)
       const currentTime = new Date().getTime()
@@ -126,6 +128,9 @@ const App = (props) => {
         checkAuthenticatePushData(props.data)
       }
     }
+    if(silencePush) {
+      checkAuthenticatePushData(silencePush)
+    }
     // const back_handle = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
     const handleLocalizationChange = () => {
       setI18nConfig();
@@ -133,7 +138,6 @@ const App = (props) => {
     _getToken()
     saveDataToLogFile("register event listener pushEvent")
     CustomNativeEventEmitter.addListener('pushEvent', data => {
-      console.log('pushEvent')
       saveDataToLogFile("Received PushEvent", Platform.OS === 'android' ? data : data.data)
       if(Platform.OS === 'ios') CustomSystem.cancelPendingPush()
       checkAuthenticatePushData(Platform.OS === 'android' ? data : data.data)

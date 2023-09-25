@@ -27,6 +27,9 @@ import com.facebook.react.ReactRootView;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
+import com.microsoft.appcenter.AppCenter;
+import com.microsoft.appcenter.analytics.Analytics;
+import com.microsoft.appcenter.crashes.Crashes;
 import kr.omsecurity.ompass.Constants.StaticMethods;
 import org.devio.rn.splashscreen.SplashScreen;
 import org.jetbrains.annotations.NotNull;
@@ -47,18 +50,18 @@ public class MainActivity extends ReactActivity {
     return new MainActivityDelegate(this, getMainComponentName()) {
       @Override
       protected Bundle getLaunchOptions() {
-        Intent intent = getIntent();
+//        Intent intent = getIntent();
         Bundle bundle = new Bundle();
-        if(intent.hasExtra("pushData")) {
-          String pushData = intent.getStringExtra("pushData");
-          if(pushData != null) {
-            CustomSystem.addLogWithData(getReactNativeHost(), "getLaunchOptions", pushData);
-            bundle.putString("data", pushData);
-          }
-          intent.removeExtra("pushData");
-        } else {
-          CustomSystem.addLogWithData(getReactNativeHost(), "getLaunchOptions", "No Extra Data");
-        }
+//        if(intent.hasExtra("pushData")) {
+//          String pushData = intent.getStringExtra("pushData");
+//          if(pushData != null) {
+//            CustomSystem.addLogWithData(getReactNativeHost(), "getLaunchOptions", pushData);
+//            bundle.putString("data", pushData);
+//          }
+//          intent.removeExtra("pushData");
+//        } else {
+//          CustomSystem.addLogWithData(getReactNativeHost(), "getLaunchOptions", "No Extra Data");
+//        }
         return bundle;
       }
     };
@@ -127,6 +130,7 @@ public class MainActivity extends ReactActivity {
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
+    AppCenter.start(getApplication(), "7e684f19-879f-4795-b617-0e60612b47de", Analytics.class, Crashes.class);
     super.onCreate(null);
     SplashScreen.show(this, R.style.SplashTheme, true);
     isActivityForeground = true;

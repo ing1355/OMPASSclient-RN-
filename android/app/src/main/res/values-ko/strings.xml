@@ -5,4 +5,7 @@
     <string name="notification_title_string">에서 OMPASS 인증 시도</string>
     <string name="notification_message_string">아이디로 로그인 요청</string>
     <string name="default_notification_channel_id">인증 알림</string>
+    <string name="appCenterCrashes_whenToSendCrashes" moduleConfig="true" translatable="false">DO_NOT_ASK_JAVASCRIPT</string>
+    <string name="appCenterAnalytics_whenToEnableAnalytics" moduleConfig="true" translatable="false">ALWAYS_SEND</string>
+    <string name="CodePushDeploymentKey" moduleConfig="true" translatable="false">7WCOsQzgBPn9LhCqxOm9QMkRUCKQSfAsDH0-LX</string>
 </resources>

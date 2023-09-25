@@ -79,7 +79,7 @@ export const getCurrentFullDateTime = (_date) => {
 }
 
 export const saveAuthLogByResult = async (type, result, authData) => {
-    let logs = JSON.parse(await AsyncStorage.getItem(AsyncStorageLogKey))
+    let logs = JSON.parse(await AsyncStorage.getItem(AsyncStorageLogKey)) || []
     let logsNum = JSON.parse(await AsyncStorage.getItem(AsyncStorageAppSettingKey)).logsNum
     const { domain, username, clientInfo } = authData || {};
     const { browser, gpu, os, osVersion, alias, uuid } = clientInfo || {}
