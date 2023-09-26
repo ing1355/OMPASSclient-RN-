@@ -29,8 +29,17 @@ const codePushOptions = {
   checkFrequency: CodePush.CheckFrequency.ON_APP_START,
   installMode: CodePush.InstallMode.IMMEDIATE,
   mandatoryInstallMode: CodePush.InstallMode.IMMEDIATE,
-  updateDialog: true
+  updateDialog: {
+    title: "새로운 업데이트가 존재합니다.",
+    optionalUpdateMessage: "지금 업데이트하시겠습니까?",
+    optionalIgnoreButtonLabel: "나중에",
+    optionalInstallButtonLabel: "업데이트"
+  }
 };
+
+CodePush.getUpdateMetadata().then(res => {
+  console.log(res)
+})
 
 // const codePushOptions = {
 //   checkFrequency: CodePush.CheckFrequency.언제체크할지설정,
@@ -38,14 +47,16 @@ const codePushOptions = {
 //   mandatoryInstallMode: CodePush.InstallMode.설치모드설정,
 // };
 
-// CodePush.sync({updateDialog: true}, (status, b, c) => {
+CodePush.sync({updateDialog: true}, (status, b, c) => {
   
-//   console.log('status : ',status, Object.keys(CodePush.SyncStatus)[status], b, c)
-// }, (progress) => {
-//   console.log('progress : ',progress)
-// }).catch(err => {
-//   console.log(err)
-// })
+  console.log('status : ',status, Object.keys(CodePush.SyncStatus)[status], b, c)
+}, (progress) => {
+  console.log('progress : ',progress)
+}).catch(err => {
+  console.log(err)
+})
+
+console.log('test12345')
 
 const HeadlessCheck = CodePush(codePushOptions)(({data, isHeadless}) => {
   if (isHeadless) {

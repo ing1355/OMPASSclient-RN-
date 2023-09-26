@@ -1,38 +1,29 @@
 package kr.omsecurity.ompass;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Application;
 import android.app.NotificationChannel;
-import android.app.NotificationChannelGroup;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.WindowManager;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
-import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.ReactRootView;
+import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint;
+import com.facebook.react.defaults.DefaultReactActivityDelegate;
 
-import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContext;
 import com.microsoft.appcenter.AppCenter;
 import com.microsoft.appcenter.analytics.Analytics;
 import com.microsoft.appcenter.crashes.Crashes;
 import kr.omsecurity.ompass.Constants.StaticMethods;
 import org.devio.rn.splashscreen.SplashScreen;
-import org.jetbrains.annotations.NotNull;
 
 public class MainActivity extends ReactActivity {
 
@@ -47,45 +38,11 @@ public class MainActivity extends ReactActivity {
 
   @Override
   protected ReactActivityDelegate createReactActivityDelegate() {
-    return new MainActivityDelegate(this, getMainComponentName()) {
-      @Override
-      protected Bundle getLaunchOptions() {
-//        Intent intent = getIntent();
-        Bundle bundle = new Bundle();
-//        if(intent.hasExtra("pushData")) {
-//          String pushData = intent.getStringExtra("pushData");
-//          if(pushData != null) {
-//            CustomSystem.addLogWithData(getReactNativeHost(), "getLaunchOptions", pushData);
-//            bundle.putString("data", pushData);
-//          }
-//          intent.removeExtra("pushData");
-//        } else {
-//          CustomSystem.addLogWithData(getReactNativeHost(), "getLaunchOptions", "No Extra Data");
-//        }
-        return bundle;
-      }
-    };
-  }
-
-  public static class MainActivityDelegate extends ReactActivityDelegate {
-    public MainActivityDelegate(ReactActivity activity, String mainComponentName) {
-      super(activity, mainComponentName);
-    }
-
-    @Override
-    protected ReactRootView createRootView() {
-      ReactRootView reactRootView = new ReactRootView(getContext());
-      // If you opted-in for the New Architecture, we enable the Fabric Renderer.
-      reactRootView.setIsFabric(com.swmansion.reanimated.BuildConfig.IS_NEW_ARCHITECTURE_ENABLED);
-      return reactRootView;
-    }
-
-    @Override
-    protected boolean isConcurrentRootEnabled() {
-      // If you opted-in for the New Architecture, we enable Concurrent Root (i.e. React 18).
-      // More on this on https://reactjs.org/blog/2022/03/29/react-v18.html
-      return com.swmansion.reanimated.BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
-    }
+    return new DefaultReactActivityDelegate(
+            this,
+            getMainComponentName(),
+            // If you opted-in for the New Architecture, we enable the Fabric Renderer.
+            DefaultNewArchitectureEntryPoint.getFabricEnabled());
   }
 
   private final ActivityResultLauncher<String> requestPermissionLauncher =
