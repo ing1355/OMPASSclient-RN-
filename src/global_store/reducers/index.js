@@ -3,9 +3,6 @@ import toggleReducer from './toggleReducer';
 import authReducer from './authReducer';
 import currentAuthReducer from './currentAuthReducer';
 import NotificationReducer from './NotificationReducer';
-import NotificationMsgReducer from './NotificationMsgReducer';
-import NotificationTitleReducer from './NotificationTitleReducer';
-import NotificationCallbackReducer from './NotificationCallbackReducer';
 import IosTypeReducer from './IosTypeReducer';
 import updateReducer from './updateReducer';
 import rootReducer from './rootReducer';
@@ -20,9 +17,6 @@ export default combineReducers({
     Authentications: authReducer,
     currentAuth: currentAuthReducer,
     notificationToggle: NotificationReducer,
-    notificationMsg: NotificationMsgReducer,
-    notificationTitle: NotificationTitleReducer,
-    notificationCallback: NotificationCallbackReducer,
     iosType: IosTypeReducer,
     needUpdate: updateReducer,
     isRoot: rootReducer,

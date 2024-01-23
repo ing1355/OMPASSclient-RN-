@@ -4,7 +4,7 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export function getOtherAuthentication({ Authentications, pass, changeNotificationToggle, callback, text, type }) {
+export function getOtherAuthentication({ Authentications, pass, callback, text, type }) {
     let check = 'unlock';
     let result = null;
 
@@ -24,7 +24,6 @@ export function getOtherAuthentication({ Authentications, pass, changeNotificati
         });
         return true
     } else {
-        changeNotificationToggle(true);
         return false
     }
 }

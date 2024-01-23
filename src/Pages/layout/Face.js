@@ -256,9 +256,6 @@ function mapDispatchToProps(dispatch) {
         changeCurrentAuth: async (auth) => {
             dispatch(ActionCreators.settingCurrentAuth(auth));
         },
-        changeNotificationToggle: (auth) => {
-            dispatch(ActionCreators.changeNotificationToggle(auth));
-        },
     };
 }
 

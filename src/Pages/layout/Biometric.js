@@ -265,9 +265,6 @@ function mapDispatchToProps(dispatch) {
         loadingToggle: (toggle) => {
             dispatch(ActionCreators.loadingToggle(toggle));
         },
-        changeNotificationToggle: (auth) => {
-            dispatch(ActionCreators.changeNotificationToggle(auth));
-        },
         auth: (info) => {
             dispatch(ActionCreators.settingAuthentications(info))
         },

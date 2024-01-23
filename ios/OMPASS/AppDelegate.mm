@@ -1,5 +1,5 @@
 #import "AppDelegate.h"
-
+#import "OMPASS-Swift.h"
 #import "EventEmitter.h"
 #import <React/RCTLinkingManager.h>
 #import <React/RCTBundleURLProvider.h>
@@ -29,6 +29,7 @@
   
   self.moduleName = @"ompass";
   self.initialProps = @{};
+//  @throw [NSException exceptionWithName:@"TestException" reason:@"Test Reason" userInfo:nil];
   return [super application:application didFinishLaunchingWithOptions:launchOptions];
 }
 
@@ -38,6 +39,7 @@
 
 - (void) userNotificationCenter:(UNUserNotificationCenter *)center willPresentNotification:(UNNotification *)notification withCompletionHandler:(void (^)(UNNotificationPresentationOptions))completionHandler {
     NSDictionary *userInfo = notification.request.content.userInfo;
+    [LogFunctionClass writeLogToFile:@"willPresentNotification" data:[NSString stringWithFormat:@"%@", userInfo]];
     if (@available(iOS 14.0, *)) {
       completionHandler(UNNotificationPresentationOptionSound | UNNotificationPresentationOptionBanner | UNNotificationPresentationOptionList | UNNotificationPresentationOptionBadge);
     } else {
@@ -48,6 +50,7 @@
 
 - (void)userNotificationCenter:(UNUserNotificationCenter *)center didReceiveNotificationResponse:(UNNotificationResponse *)response withCompletionHandler:(void (^)())completionHandler {
     NSDictionary *userInfo = response.notification.request.content.userInfo;
+    [LogFunctionClass writeLogToFile:@"didReceiveNotificationResponse" data:[NSString stringWithFormat:@"%@", userInfo]];
     [EventEmitter emitEventDictionaryWithName: @"pushEvent" andPayload: userInfo];
     [[NSUserDefaults standardUserDefaults] setObject:userInfo forKey:@"pendingPushData"];
     completionHandler();

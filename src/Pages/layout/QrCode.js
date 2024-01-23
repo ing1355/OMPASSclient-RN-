@@ -6,7 +6,7 @@ import ActionCreators from '../../global_store/actions';
 import * as RootNavigation from '../../Route/Router';
 import { translate } from '../../../App';
 import FidoAuthentication from '../../Function/FidoAuthentication';
-import { getDataByNonce, isJson } from '../../Function/GlobalFunction';
+import { getDataByNonce, isJson, saveDataToLogFile } from '../../Function/GlobalFunction';
 import { RNCamera, TakePictureResponse } from 'react-native-camera';
 
 const animationTime = 3000
@@ -62,22 +62,29 @@ const QrCode = (props) => {
     if (!scanRef.current && qrData) {
       scanRef.current = true;
       // const qrData = e.nativeEvent.codeStringValue;
+      saveDataToLogFile("QR Nonce Request", qrData)
       if (isJson(qrData)) {
         // const { url, param, userId } = JSON.parse(e.nativeEvent.codeStringValue);
         const { url, param, userId } = JSON.parse(qrData);
         console.log(qrData)
         if (!url && !param) {
           scanRef.current = false;
+          saveDataToLogFile("QR Nonce Data No Url & Param", qrData)
           return;
         } else {
           props.loadingToggle(true);
           Vibration.vibrate()
           getDataByNonce(url, param, userId, (result) => {
-            if(!result.accessKey) throw "fail"
+            if(!result.accessKey) {
+              saveDataToLogFile("QR Nonce Data No AccessKey", qrData)
+              throw "fail"
+            }
             setQr_result(result);
             props.loadingToggle(false);
+            saveDataToLogFile("QR Nonce Data Success", qrData)
           }, err => {
             console.log('qr nonce fail !! : ' ,err)
+            saveDataToLogFile("QR Nonce Fail!! ", err)
             scanRef.current = false;
             props.loadingToggle(false);
             RootNavigation.navigate('Auth_Fail', {
@@ -101,7 +108,9 @@ const QrCode = (props) => {
           setQr_result(initQrData)
         }}
         modalCloseCallback={() => {
-          scanRef.current = false
+          setTimeout(() => {
+            scanRef.current = false
+          }, 1000);
         }}
       />
       <View style={styles.container}>
@@ -190,8 +199,6 @@ function mapStateToProps(state) {
   return {
     isLoading: state.isLoading,
     currentAuth: state.currentAuth,
-    notificationMsg: state.notificationMsg,
-    notificationTitle: state.notificationTitle,
   };
 }
 

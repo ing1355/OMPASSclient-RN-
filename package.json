@@ -1,6 +1,6 @@
 {
   "name": "ompass",
-  "version": "v6",
+  "version": "5",
   "private": true,
   "scripts": {
     "android": "npx react-native run-android",

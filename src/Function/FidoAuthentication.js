@@ -1,8 +1,7 @@
 import Authenticate from '../Auth/Authenticate';
 import webAuthn from '../Auth/webAuthn';
 import * as navigation from '../Route/Router';
-import { BackHandler, NativeModules, Platform, Text, Vibration, View } from 'react-native';
-import RNFetchBlob from 'rn-fetch-blob';
+import { BackHandler, NativeModules, Platform, Text, View } from 'react-native';
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { connect, useDispatch, useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,8 +22,8 @@ const NoLogKeys = ['앱 재설치', 'SSLerror', 'CODE003']
 const isKr = RNLocalize.getLocales()[0].languageCode === 'ko'
 
 const RightMsg = (title, description) => {
-  return <View style={{ flexDirection: 'row', marginBottom: 3, alignItems:'center' }}>
-    <Text style={{ flex: isKr ? 0.5 : .75, top: 0}}>{translate(title)} </Text>
+  return <View style={{ flexDirection: 'row', marginBottom: 3, alignItems: 'center' }}>
+    <Text style={{ flex: isKr ? 0.5 : .75, top: 0 }}>{translate(title)} </Text>
     <Text style={{ flex: 2, textAlign: 'left' }} numberOfLines={2} ellipsizeMode="tail">
       {description}
     </Text>
@@ -56,8 +55,8 @@ const initAuthData = {
 
 const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnected, needUpdate, loadingToggle, currentAuth, modalCloseCallback, initCallback }) => {
   const [authData, setAuthData] = useState(initAuthData)
-  const { domain, did, redirectUri, accessKey, fidoAddress, clientInfo, displayName, procedure } = authData;
-  const { uuid } = clientInfo
+  const { domain, did, redirectUri, accessKey, fidoAddress, clientInfo, displayName, procedure } = authData || {};
+  const { uuid } = clientInfo || {}
   const username = uuid ? `${authData.username}~${uuid}` : authData.username
   const { notificationToggle, appSettings } = useSelector(state => ({
     notificationToggle: state.notificationToggle,
@@ -102,8 +101,8 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
 
   const AuthCompleteCallback = (type) => {
     const callback = () => {
-      if(procedure === 'auth') CustomSystem.cancelNotification(accessKey)
-      if (!appSettings.exitAfterAuth && clientInfo.browser && clientInfo.browser.includes('Mobile')) {
+      if (procedure === 'auth') CustomSystem.cancelNotification(accessKey)
+      if (!appSettings.exitAfterAuth && clientInfo && clientInfo.browser && clientInfo.browser.includes('Mobile')) {
         BackHandler.exitApp()
       }
     }
@@ -153,8 +152,8 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
         },
         (suc) => {
           const { authorization, challenge, userId } =
-          Platform.OS === 'android' ? JSON.parse(suc) : suc;
-          saveDataToLogFile("PreRegister Success(Response Json)", {authorization, challenge, userId})
+            Platform.OS === 'android' ? JSON.parse(suc) : suc;
+          saveDataToLogFile("PreRegister Success(Response Json)", { authorization, challenge, userId })
           console.log('preRigster suc : ', suc);
           const Register_Callback = async () => {
             webAuthn.Register(
@@ -193,18 +192,18 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
       webAuthn.PreAuthenticate(fidoAddress, domain, accessKey, redirectUri, Number(did), username, (err) => {
         console.log('pre authenticate err ? : ', err);
         saveDataToLogFile("PreAuthenticate Fail(Response Json)", err)
-        if(!NoLogKeys.find(_ => err.includes(_))) {
+        if (!NoLogKeys.find(_ => err.includes(_))) {
           saveAuthLogByResult('auth', false, authData);
         }
         AuthErrorCallback("OMPASSAuth", err, true)
       }, (msg) => {
         const { authorization, challenge, userId } = Platform.OS === 'android' ? JSON.parse(msg) : msg;
-        saveDataToLogFile("PreAuthenticate Success(Response Json)", {authorization, challenge, userId})
+        saveDataToLogFile("PreAuthenticate Success(Response Json)", { authorization, challenge, userId })
         const Auth_Callback = async () => {
           webAuthn.Authenticate(await AsyncStorage.getItem(AsyncStorageFcmTokenKey), fidoAddress, domain, accessKey, username, authorization, challenge, userId, await GetClientInfo(), (err) => {
             console.log('authenticate err ? : ', err);
             saveDataToLogFile("Authenticate Fail(Authenticate Response Json)", err)
-            if(!NoLogKeys.find(_ => err.includes(_))) {
+            if (!NoLogKeys.find(_ => err.includes(_))) {
               saveAuthLogByResult('auth', false, authData);
             }
             AuthErrorCallback("OMPASSAuth", err)
@@ -246,21 +245,20 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
       })
     }
   }
-  
+
   useLayoutEffect(() => {
     if (tempAuthData.accessKey && isForgery.isChecked && isRoot.isChecked && usbConnected.isChecked && needUpdate.isChecked && !(isForgery.isForgery || isRoot.isRoot || usbConnected.usbConnected || needUpdate.needUpdate)) {
       const withAuthCheck = async () => {
         if (await check_auth_info()) {
           // if (execute && true) {
-          if (notificationToggle) dispatch(changeNotificationToggle(false))
-          if(modalOpen) {
+          if (modalOpen) {
             setModalOpen(false)
           }
           setTimeout(() => {
             setModalOpen(true)
           }, 10);
           if (tempAuthData.procedure === 'auth') {
-            
+
           } else {
             // RNFetchBlob.config({ trusty: true }).fetch(
             //   'POST',
@@ -295,35 +293,50 @@ const FidoAuthentication = ({ isQR, tempAuthData, isForgery, isRoot, usbConnecte
       callbackFunc();
     }
   }, [authData])
-  
-  return <CustomConfirmModal
-    title={translate('confirmUserTitle', { type: procedure === 'reg' ? (isKr ? '등록' : 'Registration') : (isKr ? '인증' : 'Authentication') })}
-    yesOrNo
-    msg={
-      <>
-        {RightMsg('authFirstItemTitle', tempAuthData.applicationName)}
-        {RightMsg('authSecondItemTitle', tempAuthData.username)}
-        {/* {RightMsg('authSecondItemTitle', tempAuthData && tempAuthData.accessKey && tempAuthData.accessKey.split('.')[2])} */}
-        {RightMsg('authThirdItemTitle', tempAuthData.clientInfo && tempAuthData.clientInfo.ip)}
-        {RightMsg('authFourthItemTitle', tempAuthData.clientInfo && tempAuthData.clientInfo.location)}
-        <Text style={{ textAlign: 'center', marginTop: 8 }}>
-          {translate('confirmUserDescription') + '\n'}
-        </Text>
-      </>
-    }
-    modalOpen={modalOpen}
-    modalClose={() => {
-      if (modalCloseCallback) modalCloseCallback()
-      setModalOpen(false);
-    }}
-    cancelCallback={() => {
-      if(initCallback) initCallback()
-      // onCancelNewDevice({ username, did, fidoAddress });
-    }}
-    callback={() => {
-      if(initCallback) initCallback()
-      setAuthData(tempAuthData)
-    }} />
+
+  return <>
+    <CustomConfirmModal
+      title={translate('confirmUserTitle', { type: procedure === 'reg' ? (isKr ? '등록' : 'Registration') : (isKr ? '인증' : 'Authentication') })}
+      yesOrNo
+      msg={
+        <>
+          {RightMsg('authFirstItemTitle', tempAuthData.applicationName)}
+          {RightMsg('authSecondItemTitle', tempAuthData.username)}
+          {/* {RightMsg('authSecondItemTitle', tempAuthData && tempAuthData.accessKey && tempAuthData.accessKey.split('.')[2])} */}
+          {RightMsg('authThirdItemTitle', tempAuthData.clientInfo && tempAuthData.clientInfo.ip)}
+          {RightMsg('authFourthItemTitle', tempAuthData.clientInfo && tempAuthData.clientInfo.location)}
+          <Text style={{ textAlign: 'center', marginTop: 8 }}>
+            {translate('confirmUserDescription') + '\n'}
+          </Text>
+        </>
+      }
+      onShow={() => {
+        dispatch(changeNotificationToggle(true))
+      }}
+      modalOpen={modalOpen}
+      modalClose={() => {
+        if (modalCloseCallback) modalCloseCallback()
+        setModalOpen(false);
+        setTimeout(() => {
+          dispatch(changeNotificationToggle(false))
+        }, 1000);
+      }}
+      cancelCallback={() => {
+        if (initCallback) initCallback()
+        // onCancelNewDevice({ username, did, fidoAddress });
+      }}
+      callback={() => {
+        if (initCallback) initCallback()
+        setAuthData(tempAuthData)
+      }} />
+      {notificationToggle && <View style={{
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        zIndex: 1,
+        backgroundColor:'transparent'
+      }}/>}
+  </>
 }
 
 function mapStateToProps(state) {

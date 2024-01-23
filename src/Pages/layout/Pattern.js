@@ -20,7 +20,6 @@ import { NotoSansRegular } from '../../env';
 import { translate } from '../../../App';
 import { getOtherAuthentication } from '../../Function/GetOtherAuthentication';
 import { iosStatusBarHeight } from '../../Route/CustomStatusBar';
-import * as RootNavigation from '../../Route/Router';
 
 let id = 0;
 const getNativeEventByPlatform = (nEvt) => {
@@ -457,9 +456,6 @@ function mapDispatchToProps(dispatch) {
     return {
         loadingToggle: async (toggle) => {
             dispatch(ActionCreators.loadingToggle(toggle));
-        },
-        changeNotificationToggle: (auth) => {
-            dispatch(ActionCreators.changeNotificationToggle(auth));
         },
     };
 }

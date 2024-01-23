@@ -79,6 +79,7 @@ class AuthenticatorManager {
   
   func customError(error:AFError, completion: ((String) -> ())? = nil) {
     print(error.errorDescription)
+    LogFunctionClass.writeLogToFile("CustomError", data: "\(error.errorDescription)")
     if ((error.errorDescription?.contains("The certificate for this server is invalid")) == true) {
       completion?("SSLerror")
     } else if((error.errorDescription?.contains("이 서버에 대한 인증서가 유효하지 않습니다.")) == true) {
@@ -123,9 +124,6 @@ class AuthenticatorManager {
       completion?("CODE002")
       return
     }
-    
-    
-    
     
     print("tryRegister | challenge: " + self.challenge)
     
@@ -186,7 +184,17 @@ class AuthenticatorManager {
       let parameters = self.getRegisterToJSON(cborB64: attestationObject, b64ClientDataJSON: b64ClientDataJSON)
       print("register json")
       print(parameters)
-      
+      do {
+          let jsonData = try JSONSerialization.data(withJSONObject: parameters, options: .prettyPrinted)
+
+          // JSON 데이터를 문자열로 변환
+          if let jsonString = String(data: jsonData, encoding: .utf8) {
+              LogFunctionClass.writeLogToFile("Register Request(JSON String)", data: jsonString)
+          }
+      } catch {
+          LogFunctionClass.writeLogToFile("Register Request Error(JSON Parse Error)", data: error.localizedDescription)
+          print("Error converting Dictionary to JSON: \(error.localizedDescription)")
+      }
       if self.session != nil {
         let manager = ServerTrustManager(allHostsMustBeEvaluated: false, evaluators: [self.domain: DisabledTrustEvaluator()])
         let configuration = URLSessionConfiguration.af.default
@@ -215,10 +223,12 @@ class AuthenticatorManager {
           switch response.result {
           case .success(let value):
             let result = JSON(value)["isSuccess"].stringValue
+            LogFunctionClass.writeLogToFile("Register Response(Success)", data: result)
             completion?(result)
           case.failure(let error):
             self.customError(error: error, completion: {
               str in
+              LogFunctionClass.writeLogToFile("Register Response(Fail)", data: str)
               completion?(str)
             })
           }
@@ -227,6 +237,8 @@ class AuthenticatorManager {
       print("==========================================")
       print("error credential: " + error.localizedDescription)
       print("==========================================")
+      LogFunctionClass.writeLogToFile("Register Response(Fail)", data: "CODE002")
+      LogFunctionClass.writeLogToFile("Register Response(Fail Reason)", data: error.localizedDescription)
       completion?("CODE002")
     }
     
@@ -385,19 +397,19 @@ class AuthenticatorManager {
     request.setValue(self.accessKey, forHTTPHeaderField: "accessKey")
     let data = try! JSONSerialization.data(withJSONObject: parameters, options: JSONSerialization.WritingOptions.prettyPrinted)
     let json = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
+    LogFunctionClass.writeLogToFile("PreRegister Request", data: String(json ?? ""))
     if let json = json {
       debugPrint(json)
     }
     request.httpBody = json!.data(using: String.Encoding.utf8.rawValue)
+    
     session?.request(request)
       .responseJSON { response in
-        
         debugPrint("Response: \(response)")
         switch response.result {
         case .success(let value):
           if let data = response.data {
             debugPrint(data)
-            
             if let headers = response.response?.headers  {
               
               self.authorization = headers.value(for: "Authorization") ?? ""
@@ -406,6 +418,7 @@ class AuthenticatorManager {
             
             do {
               let json = try JSON(data: data)
+              LogFunctionClass.writeLogToFile("PreRegister Response(Success)", data: json.rawString() ?? "")
               let responseJson = json["Response"]
               
               self.userName = responseJson["user"]["name"].string ?? ""
@@ -414,6 +427,7 @@ class AuthenticatorManager {
               self.attestation = responseJson["attestation"].string ?? ""
             }
             catch {
+              LogFunctionClass.writeLogToFile("PreRegister Response(Fail)", data: "CODE001")
               completion?("CODE001")
             }
           }
@@ -422,6 +436,7 @@ class AuthenticatorManager {
         case.failure(let error):
           self.customError(error: error, completion: {
             str in
+            LogFunctionClass.writeLogToFile("PreRegister Response(Fail)", data: str)
             completion?(str)
           })
         }
@@ -450,8 +465,8 @@ class AuthenticatorManager {
     request.setValue("application/json", forHTTPHeaderField: "accept")
     request.setValue(self.accessKey, forHTTPHeaderField: "accessKey")
     let data = try! JSONSerialization.data(withJSONObject: parameters, options: JSONSerialization.WritingOptions.prettyPrinted)
-    
     let json = NSString(data: data, encoding: String.Encoding.utf8.rawValue)
+    LogFunctionClass.writeLogToFile("PreAuthenticate Request", data: String(json ?? ""))
     if let json = json {
       print(json)
     }
@@ -474,7 +489,7 @@ class AuthenticatorManager {
             do {
               let json = try JSON(data: data)
               let responseJson = json["Response"]
-              
+              LogFunctionClass.writeLogToFile("PreAuthenticate Response(Success)", data: json.rawString() ?? "")
               
               self.credentialId = responseJson["allowCredentials"][0]["id"].string ?? ""
               self.challenge = responseJson["challenge"].string ?? ""
@@ -482,6 +497,7 @@ class AuthenticatorManager {
               debugPrint("preAuthenticate | challenge: " + self.challenge)
             }
             catch {
+              LogFunctionClass.writeLogToFile("PreAuthenticate Response(Fail)", data: "CODE001")
               completion?("CODE001")
             }
             
@@ -491,6 +507,7 @@ class AuthenticatorManager {
         case.failure(let error):
           self.customError(error: error, completion: {
             str in
+            LogFunctionClass.writeLogToFile("PreAuthenticate Response(Fail)", data: str)
             completion?(str)
           })
         }
@@ -536,6 +553,7 @@ class AuthenticatorManager {
       if let json = json {
         print(json)
       }
+      LogFunctionClass.writeLogToFile("Authenticate Request", data: String(json ?? ""))
       request.httpBody = json!.data(using: String.Encoding.utf8.rawValue)
       self.session?.request(request)
         .responseJSON { response in
@@ -545,6 +563,7 @@ class AuthenticatorManager {
           case .success(let value):
             if let data = response.data {
               let result = JSON(value)["isSuccess"].stringValue
+              LogFunctionClass.writeLogToFile("Authenticate Response(Success)", data: result)
               if result == "true" {
                 self.authentication_token = response.response?.allHeaderFields["Authorization"] as! String
               }
@@ -553,6 +572,7 @@ class AuthenticatorManager {
           case.failure(let error):
             self.customError(error: error, completion: {
               str in
+              LogFunctionClass.writeLogToFile("Authenticate Response(Fail)", data: str)
               completion?(str)
             })
           }
@@ -561,6 +581,8 @@ class AuthenticatorManager {
       print("==========================================")
       print("error credential: " + error.localizedDescription)
       print("==========================================")
+      LogFunctionClass.writeLogToFile("Authenticate Response(Fail)", data: "")
+      LogFunctionClass.writeLogToFile("Authenticate Response(Fail Reason)", data: error.localizedDescription)
       failCompletion()
     }
   }
@@ -583,9 +605,12 @@ class AuthenticatorManager {
     print("tryAuthenticate | challenge: " + self.challenge)
 //    print((rpId.contains("https://") || rpId.contains("www.")) ? rpId : "https://" + rpId)
     let options = PublicKeyCredentialRequestOptions(challenge: challenge, rpId: rpId + "-" + userName, userVerification: UserVerificationRequirement.discouraged)
+    LogFunctionClass.writeLogToFile("Authenticate Request", data: "Check The App Is Latest Version - " + "\(rpId) - \(userName)")
     authenticationComplete(options: options, completion: completion, failCompletion: {
       let old_options = PublicKeyCredentialRequestOptions(challenge: self.challenge, rpId: self.rpId, userVerification: UserVerificationRequirement.discouraged)
+      LogFunctionClass.writeLogToFile("Authenticate Request(Old Version)", data: "The App Is Old Version - " + "\(self.rpId)")
       self.authenticationComplete(options: old_options, completion: completion, failCompletion: {
+        LogFunctionClass.writeLogToFile("Authenticate Request(Old Version) Fail", data: "CODE002")
         completion?("CODE002")
       })
     })

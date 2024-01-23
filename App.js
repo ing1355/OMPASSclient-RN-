@@ -1,10 +1,8 @@
 import React, { useRef, useLayoutEffect, useState, useEffect } from 'react';
 import {
   LogBox,
-  AppState,
   Linking,
-  Vibration,
-  NativeModules
+  Vibration
 } from 'react-native';
 import 'react-native-gesture-handler';
 import Routes from './src/Route/Routes';
@@ -81,6 +79,7 @@ const initTempData = {
 const App = (props) => {
   const [push_result_temp, setPush_result_temp] = useState(initTempData)
   const [fidoType, setFidoType] = useState("auth")
+  
   const tempRef = useRef({})
 
   function handleBackPress() {
@@ -121,7 +120,7 @@ const App = (props) => {
     if(Platform.OS === 'ios') {
       const pendingPush = CustomSystem.checkPendingPush()
       if(pendingPush) checkAuthenticatePushData(pendingPush.data)
-      saveDataToLogFile("iOS Opened Push", pendingPush.data)
+      // saveDataToLogFile("iOS Opened Push", pendingPush.data)
     } else {
       if(props && props.data) {
         saveDataToLogFile("Android Opened Push1", props.data)
@@ -142,10 +141,10 @@ const App = (props) => {
       if(Platform.OS === 'ios') CustomSystem.cancelPendingPush()
       checkAuthenticatePushData(Platform.OS === 'android' ? data : data.data)
     })
-    CustomNativeEventEmitter.addListener("pushOpenedApp", (data) => {
-      saveDataToLogFile("Android Opened Push2", data)
-      checkAuthenticatePushData(data)
-    })
+    // CustomNativeEventEmitter.addListener("pushOpenedApp", (data) => {
+    //   saveDataToLogFile("Android Opened Push2", data)
+    //   checkAuthenticatePushData(data)
+    // })
     RNLocalize.addEventListener('change', handleLocalizationChange);
     Linking.getInitialURL().then(url => {
       if (url) {
@@ -195,7 +194,7 @@ const App = (props) => {
       });
     })
   }
-
+  
   return (
     <>
       <Loading />

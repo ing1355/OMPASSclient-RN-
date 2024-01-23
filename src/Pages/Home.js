@@ -13,7 +13,7 @@ import {
   NativeModules
 } from 'react-native';
 import styles from '../styles/Home';
-import { connect } from 'react-redux';
+import { connect, useSelector } from 'react-redux';
 import { CheckPermission } from '../Components/CheckPermissions';
 import ActionCreators from '../global_store/actions';
 import { CustomNotification } from '../Components/CustomAlert';
@@ -45,6 +45,9 @@ const Home = ({
   const [notifyOpen_3, setNotifyOpen_3] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   // const [zoomValue, setZoomValue] = useState(zoomInput)
+  const { notificationToggle } = useSelector(state => ({
+    notificationToggle: state.notificationToggle
+  }))
   const menuOpenRef = useRef(null)
 
   

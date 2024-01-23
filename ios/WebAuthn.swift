@@ -5,39 +5,54 @@ import SwiftKeychainWrapper
 @objc(WebAuthn)
 public class WebAuthn : NSObject {
   var authenticatorMangager : AuthenticatorManager? = nil
-  
+
   @objc
   func PreRegister(_ fidoAddress:String, domain:String, accessKey:String, username:String, displayName:String, redirectUri:String, did:Int, errorCallback: @escaping RCTResponseSenderBlock, successCallback: @escaping RCTResponseSenderBlock) {
-    debugPrint("\(Data()) : PreRegister | \(fidoAddress)")
-    DispatchQueue.main.async { [weak self] in
-      self?.authenticatorMangager = AuthenticatorManager(fidoAddress: fidoAddress, domain: domain, accessKey: accessKey)
-      debugPrint("create AuthenticatorManager in PreRegister")
-      self?.authenticatorMangager?.tryPreregister(username: username, displayName: displayName, redirectUri: redirectUri, did: did, completion: { state in
-        debugPrint("result response : \(state)")
-        if state == "success" {
-          let result: [String: Any] = [
-            "authorization": self?.authenticatorMangager?.authorization,
-            "challenge" : self?.authenticatorMangager?.challenge,
-            "userId": self?.authenticatorMangager?.userId
-          ] as Dictionary
-          successCallback([result])
-        } else {
-          errorCallback([state])
-        }
-        debugPrint("end in PreRegitster")
-      })
+    LogFunctionClass.writeLogToFile("PreRegister Start", data: fidoAddress)
+//    debugPrint("\(Data()) : PreRegister | \(fidoAddress)")
+    do {
+      try DispatchQueue.main.async { [weak self] in
+        self?.authenticatorMangager = AuthenticatorManager(fidoAddress: fidoAddress, domain: domain, accessKey: accessKey)
+        LogFunctionClass.writeLogToFile("PreRegister Start", data: "create AuthenticatorManager in PreRegister")
+        self?.authenticatorMangager?.tryPreregister(username: username, displayName: displayName, redirectUri: redirectUri, did: did, completion: { state in
+          if state == "success" {
+            let result: [String: Any] = [
+              "authorization": self?.authenticatorMangager?.authorization,
+              "challenge" : self?.authenticatorMangager?.challenge,
+              "userId": self?.authenticatorMangager?.userId
+            ] as Dictionary
+            do {
+              if let jsonString = String(data: try JSONSerialization.data(withJSONObject: result), encoding: .utf8) {
+                  LogFunctionClass.writeLogToFile("PreRegister Success", data: jsonString)
+              }
+            } catch {
+              LogFunctionClass.writeLogToFile("PreRegister Fail", data: "Fail To Convert Json String")
+            }
+            successCallback([result])
+          } else {
+            LogFunctionClass.writeLogToFile("PreRegister Fail", data: state)
+            errorCallback([state])
+          }
+        })
+      }
+    } catch {
+      print(error)
+      LogFunctionClass.writeLogToFile("PreRegister Fail Catch", data: "\(error)")
     }
   }
   
   @objc
   func Register(_ fidoAddress:String, domain:String, accessKey:String, username:String, clientInfo:String, displayName:String, pushToken:String, authorization:String,
                 challenge:String, userId:String, errorCallback: @escaping RCTResponseSenderBlock, successCallback: @escaping RCTResponseSenderBlock) {
+    LogFunctionClass.writeLogToFile("Register Start", data: fidoAddress)
     authenticatorMangager?.pushToken = pushToken
     authenticatorMangager?.clientInfo = clientInfo
     authenticatorMangager?.tryRegister( completion: {state in
       if state == "true" {
+        LogFunctionClass.writeLogToFile("Register Success", data: state)
         successCallback(["success"])
       } else {
+        LogFunctionClass.writeLogToFile("Register Fail", data: state)
         errorCallback([state])
       }
     })
@@ -45,8 +60,10 @@ public class WebAuthn : NSObject {
   
   @objc
   func PreAuthenticate(_ fidoAddress:String, domain:String, accessKey:String, redirectUri:String, did:Int, username:String, errorCallback: @escaping RCTResponseSenderBlock, successCallback: @escaping RCTResponseSenderBlock) {
+    LogFunctionClass.writeLogToFile("PreAuthenticate Start", data: fidoAddress)
     DispatchQueue.main.async { [weak self] in
       self?.authenticatorMangager = AuthenticatorManager(fidoAddress: fidoAddress, domain: domain, accessKey: accessKey)
+      LogFunctionClass.writeLogToFile("PreAuthenticate Start", data: "create AuthenticatorManager in PreAuthenticate")
       self?.authenticatorMangager?.requestAuthentication(username: username, redirectUri: redirectUri, did: did, completion: { state in
         if state == "success" {
           let result: [String: Any] = [
@@ -54,8 +71,16 @@ public class WebAuthn : NSObject {
             "challenge" : self?.authenticatorMangager?.challenge,
             "userId": self?.authenticatorMangager?.userId
           ] as Dictionary
+          do {
+            if let jsonString = String(data: try JSONSerialization.data(withJSONObject: result), encoding: .utf8) {
+                LogFunctionClass.writeLogToFile("PreAuthenticate Success", data: jsonString)
+            }
+          } catch {
+            LogFunctionClass.writeLogToFile("PreAuthenticate Fail", data: "Fail To Convert Json String")
+          }
           successCallback([result])
         } else {
+          LogFunctionClass.writeLogToFile("PreAuthenticate Fail", data: state)
           errorCallback([state])
         }
       })
@@ -65,12 +90,15 @@ public class WebAuthn : NSObject {
   @objc
   func Authenticate(_ pushToken:String, fidoAddress:String, domain:String, accessKey:String, username:String, authorization:String, challenge:String, userId:String,
                     clientInfo:String, errorCallback: @escaping RCTResponseSenderBlock, successCallback: @escaping RCTResponseSenderBlock) {
+    LogFunctionClass.writeLogToFile("Authenticate Start", data: fidoAddress)
     authenticatorMangager?.clientInfo = clientInfo
     authenticatorMangager?.pushToken = pushToken
     authenticatorMangager?.tryAuthentication(completion: {state in
       if state == "true" {
+        LogFunctionClass.writeLogToFile("Authenticate Success", data: state)
         successCallback([self.authenticatorMangager?.authentication_token ?? ""])
       } else {
+        LogFunctionClass.writeLogToFile("Authenticate Fail", data: state)
         errorCallback([state])
       }
     })
@@ -88,6 +116,8 @@ public class WebAuthn : NSObject {
         successCallback(["fingerprint"])
       case .faceID:
         successCallback(["face"])
+      case .opticID: // 홍채인식
+        successCallback(["none"])
       }
     } else {
       successCallback(["none"])

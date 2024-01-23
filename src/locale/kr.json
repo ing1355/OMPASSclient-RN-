@@ -187,6 +187,7 @@
     "in_app_error_msg_2": "앱을 다시 실행시켜주세요.",
     "please_confirm_qr_code": "버튼을 터치하여\nOMPASS QR코드를 스캔해주세요.",
     "QRCodeText": "QR코드를 인식해서\n등록 또는 인증을 진행하세요",
+    "SendLogs": "서버로 로그 전송",
     "SendFeedBack": "피드백 보내기",
     "notificationTitle": "%{applicationName}에서 OMPASS 인증 시도",
     "notificationBody": "%{username} 아이디로 로그인 요청",

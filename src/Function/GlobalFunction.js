@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageLogKey, AsyncStorageAppSettingKey } from '../Constans/ContstantValues';
 import RNFetchBlob from 'rn-fetch-blob';
-import { getDeviceName, getModel } from 'react-native-device-info';
+import { getDeviceId, getDeviceName, getModel, getUniqueId } from 'react-native-device-info';
 import { CustomSystem } from './NativeModules';
 
 const dirs = RNFetchBlob.fs.dirs;
@@ -14,7 +14,7 @@ export const saveDataToLogFile = async (tag, data) => {
     if(!(await fs.exists(logPath))) {
         await fs.createFile(logPath, "", "utf8")
     }
-    await fs.appendFile(logPath, `[${convertFullTimeString(new Date())}] - ${tag || "no tag"} - ${JSON.stringify(data)}` + '\n\n', "utf8")
+    await fs.appendFile(logPath, `[${convertFullTimeString(new Date())}] - ${tag || "no tag"} - ${JSON.stringify(data) || ""}` + '\n\n', "utf8")
 }
 
 export const getDataByLogFile = async () => {
@@ -30,7 +30,7 @@ export const clearDataLogFile = async () => {
 export const sendLogFileToServer = async (callback) => {
     RNFetchBlob.fetch('POST', 'https://ompass.kr:56000/log', { 'Content-Type': 'application/json' }, JSON.stringify({
         log: await getDataByLogFile(),
-        alias: await getDeviceName() + ',' + getModel()
+        alias: await getDeviceName() + ',' + getModel() + ',' + await getUniqueId()
     })).then(async res => {
         CustomConsoleLog(res)
         if(res.data === "success") {

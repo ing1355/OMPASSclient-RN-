@@ -46,6 +46,7 @@
 		AE52AB692A6F719400B337A5 /* FCMFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE52AB662A6F719400B337A5 /* FCMFunctions.swift */; };
 		AE7CDB822A6F8BD800E195C9 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = AE7CDB842A6F8BD800E195C9 /* Localizable.strings */; };
 		AE7CDB862A6F8C4B00E195C9 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = AE7CDB882A6F8C4B00E195C9 /* InfoPlist.strings */; };
+		AE864BDC2B47C4750051E3D4 /* LogsFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE864BDB2B47C4750051E3D4 /* LogsFunctions.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -146,6 +147,7 @@
 		AE7CDB852A6F8C2800E195C9 /* ko-KR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "ko-KR"; path = "ko-KR.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		AE7CDB872A6F8C4B00E195C9 /* ko-KR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "ko-KR"; path = "ko-KR.lproj/InfoPlist.strings"; sourceTree = "<group>"; };
 		AE7CDB892A6F8C4F00E195C9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		AE864BDB2B47C4750051E3D4 /* LogsFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogsFunctions.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -228,6 +230,7 @@
 				AE7CDB882A6F8C4B00E195C9 /* InfoPlist.strings */,
 				AE7CDB842A6F8BD800E195C9 /* Localizable.strings */,
 				13B07FB71A68108700A75B9A /* main.m */,
+				AE864BDB2B47C4750051E3D4 /* LogsFunctions.swift */,
 			);
 			name = OMPASS;
 			sourceTree = "<group>";
@@ -403,7 +406,7 @@
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
 			packageReferences = (
-				AE52AB5F2A6F718300B337A5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk.git" */,
+				AE52AB5F2A6F718300B337A5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
@@ -609,6 +612,7 @@
 				19463348293F346800B8DA63 /* CustomSystem.m in Sources */,
 				19463344293F346700B8DA63 /* checkForgery.swift in Sources */,
 				19463349293F346800B8DA63 /* keyChain.m in Sources */,
+				AE864BDC2B47C4750051E3D4 /* LogsFunctions.swift in Sources */,
 				13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */,
 				AE52AB692A6F719400B337A5 /* FCMFunctions.swift in Sources */,
 				19463346293F346800B8DA63 /* keyChain.swift in Sources */,
@@ -714,7 +718,7 @@
 				CODE_SIGN_ENTITLEMENTS = OMPASS/OMPASS.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 20;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = YXVKTRBYQ7;
 				ENABLE_BITCODE = NO;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -727,7 +731,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.3;
+				MARKETING_VERSION = 1.3.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -754,20 +758,22 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 20;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = "";
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = YXVKTRBYQ7;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/WebAuthnKitFramworks",
 				);
+				GCC_OPTIMIZATION_LEVEL = 0;
 				INFOPLIST_FILE = OMPASS/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.3;
+				MARKETING_VERSION = 1.3.5;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -778,6 +784,7 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = OMPASS_APP_STORE;
 				"SWIFT_OBJC_BRIDGING_HEADER[arch=*]" = "ompass-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 			};
@@ -824,6 +831,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
+					_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -850,6 +858,13 @@
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-Wl",
+					"-ld_classic",
+					"-Wl",
+					"-ld_classic",
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
@@ -886,12 +901,16 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
-				COPY_PHASE_STRIP = YES;
+				COPY_PHASE_STRIP = NO;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					_LIBCPP_ENABLE_CXX17_REMOVED_UNARY_BINARY_FUNCTION,
+				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -915,6 +934,13 @@
 					"-DFOLLY_NO_CONFIG",
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-Wl",
+					"-ld_classic",
+					"-Wl",
+					"-ld_classic",
 				);
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
@@ -956,7 +982,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		AE52AB5F2A6F718300B337A5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk.git" */ = {
+		AE52AB5F2A6F718300B337A5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
 			requirement = {
@@ -969,7 +995,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		AE52AB602A6F718300B337A5 /* FirebaseMessaging */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = AE52AB5F2A6F718300B337A5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk.git" */;
+			package = AE52AB5F2A6F718300B337A5 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseMessaging;
 		};
 /* End XCSwiftPackageProductDependency section */

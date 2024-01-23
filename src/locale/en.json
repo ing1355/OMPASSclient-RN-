@@ -188,6 +188,7 @@
   "please_confirm_qr_code": "Touch the button\nto scan the OMPASS QR code.",
   "QRCodeText": "Scan QR code to\nregister or authenticate",
   "SendFeedBack": "Send Feedback",
+  "SendLogs": "Send Logs",
   "notificationTitle": "OMPASS Authentication From %{applicationName}",
   "notificationBody": "Login request for %{username}",
   "registerInfoID": "ID",

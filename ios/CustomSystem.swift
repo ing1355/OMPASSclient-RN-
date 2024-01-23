@@ -21,6 +21,11 @@ public class CustomSystem : NSObject {
   }
   
   @objc
+  func LogNative(_ tag: String, text: String) {
+    LogToConsole(tag, text: text)
+  }
+  
+  @objc
   func cancelNotification(_ id: String) {
     print("cancelcancel!!")
     let center = UNUserNotificationCenter.current()
@@ -28,8 +33,8 @@ public class CustomSystem : NSObject {
       print("==== Delivered Notifications ====")
       for notification in notifications {
         let identifier = notification.request.identifier
-        let title = notification.request.content.title
-        let body = notification.request.content.body
+//        let title = notification.request.content.title
+//        let body = notification.request.content.body
         let userInfo = notification.request.content.userInfo["data"]
         if let jsonString = userInfo as? String {
           if let jsonData = jsonString.data(using: .utf8) {

@@ -24,6 +24,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 
+import static java.lang.Thread.sleep;
+
 public class StaticMethods {
     public static WritableMap convertJsonToMap(JSONObject jsonObject) throws JSONException {
         WritableMap map = new WritableNativeMap();
@@ -146,16 +148,30 @@ public class StaticMethods {
         ReactApplicationContext context = (ReactApplicationContext) host.getReactInstanceManager().getCurrentReactContext();
         if(context != null) {
             context.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                    .emit(eventName, data);
-            CustomSystem.addLogWithData(host, "sendEventToReact context is not null", eventName);
+                    .emit("pushEvent", data);
+            CustomSystem.addLogWithData(host, "sendEventToReact context is not null", eventName, data);
         } else {
-            CustomSystem.addLogWithData(host, "sendEventToReact context is null", eventName);
+            CustomSystem.addLogWithData(host, "sendEventToReact context is null", eventName, data);
             host.getReactInstanceManager().addReactInstanceEventListener(new ReactInstanceEventListener() {
                 public void onReactContextInitialized(ReactContext validContext) {
-                    CustomSystem.addLogWithData(host, "sendEventToReact context initialized by event listener", eventName);
-                    host.getReactInstanceManager().getCurrentReactContext().getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                            .emit(eventName, data);
+                    CustomSystem.addLogWithData(host, "sendEventToReact context initialized by event listener", eventName, data);
+                    validContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                            .emit("pushEvent", data);
                     host.getReactInstanceManager().removeReactInstanceEventListener(this);
+//                    ReactInstanceEventListener reactInstanceEventListener = this;
+//                    CustomSystem.addLogWithData(host, "onReactContextInitialized", eventName, data);
+//                    Runnable runnable = new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            try {
+//                                sleep(2000);
+//
+//                            } catch (InterruptedException e) {
+//                                throw new RuntimeException(e);
+//                            }
+//                        }
+//                    };
+//                    runnable.run();
                 }
             });
         }

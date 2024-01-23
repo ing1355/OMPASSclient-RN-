@@ -22,6 +22,7 @@ import CustomOpacityButton from '../../Components/CustomOpacityButton';
 import { CustomConsoleLog, getDataByLogFile, sendLogFileToServer } from '../../Function/GlobalFunction';
 import { ENVIRONMENT } from '@env'
 import { useNavigation } from '@react-navigation/native';
+// import packageJson from '../../../package.json'
 
 const isDev = ENVIRONMENT === 'dev'
 
@@ -233,7 +234,7 @@ const MenuSidebar = ({ opened, toggle }) => {
             </View>
           </CustomOpacityButton>
         </View>
-        {isDev && <Pressable style={[styles.feedback_container, {
+        <Pressable style={[styles.feedback_container, {
           bottom: 60
         }]} onPress={() => {
           CustomConsoleLog("touch send log file")
@@ -244,9 +245,9 @@ const MenuSidebar = ({ opened, toggle }) => {
           <Text style={[styles.feedback_text, (!hasLogs || logChecked) && {
             color: 'rgba(0,0,0,.5)'
           }]}>
-            서버로 로그 전송
+            {translate('SendLogs')}
           </Text>
-        </Pressable>}
+        </Pressable>
         <Pressable style={styles.feedback_container} onPress={() => {
           if (RNLocalize.getLocales()[0].languageCode === 'ko') {
             Linking.openURL(`https://docs.google.com/forms/d/e/1FAIpQLSf_S5Av-D6IHzEWFufFhAqicBuMmGafxHFcY6IJKXM_44xzlw/viewform?usp=pp_url&entry.1778377264=${Platform.OS === 'android' ? 'Android' : 'iOS'}&entry.249062392=${getVersion()}(${getBuildNumber()})`)

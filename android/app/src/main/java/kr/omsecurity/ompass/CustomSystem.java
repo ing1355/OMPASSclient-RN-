@@ -81,11 +81,6 @@ public class CustomSystem extends ReactContextBaseJavaModule {
         }
     }
 
-    @ReactMethod
-    public void LogNative(String tag, String txt) {
-        Log.d(tag != null ? tag : "ProdLog", txt);
-    }
-
     @RequiresApi(Build.VERSION_CODES.O)
     private Intent notificationSettingOreo(ReactContext context) {
         Intent intent = new Intent();
@@ -112,6 +107,11 @@ public class CustomSystem extends ReactContextBaseJavaModule {
         return reactContext;
     }
 
+    @ReactMethod
+    public void LogNative(String tag, String txt) {
+        Log.d(tag != null ? tag : "ProdLog", txt);
+    }
+
     public static void addLogWithData(ReactNativeHost host, String tag, String data) {
         ReactApplicationContext context = (ReactApplicationContext) host.getReactInstanceManager().getCurrentReactContext();
         if(context != null) {
@@ -122,6 +122,22 @@ public class CustomSystem extends ReactContextBaseJavaModule {
                 public void onReactContextInitialized(ReactContext validContext) {
                     File file = new File(host.getReactInstanceManager().getCurrentReactContext().getFilesDir().getAbsolutePath() + "/" + Constants.LogFileName);
                     writeToFileLog(file, tag, data);
+                    host.getReactInstanceManager().removeReactInstanceEventListener(this);
+                }
+            });
+        }
+    }
+
+    public static void addLogWithData(ReactNativeHost host, String tag, String data, String params) {
+        ReactApplicationContext context = (ReactApplicationContext) host.getReactInstanceManager().getCurrentReactContext();
+        if(context != null) {
+            File file = new File(context.getFilesDir().getAbsolutePath() + "/" + Constants.LogFileName);
+            writeToFileLog(file, tag, data, params);
+        } else {
+            host.getReactInstanceManager().addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
+                public void onReactContextInitialized(ReactContext validContext) {
+                    File file = new File(validContext.getFilesDir().getAbsolutePath() + "/" + Constants.LogFileName);
+                    writeToFileLog(file, tag, data, params);
                     host.getReactInstanceManager().removeReactInstanceEventListener(this);
                 }
             });
@@ -151,4 +167,30 @@ public class CustomSystem extends ReactContextBaseJavaModule {
             throw new RuntimeException(e);
         }
     }
+    private static void writeToFileLog(File file, String tag, String data, String params) {
+        Date date = new Date(System.currentTimeMillis());
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String time = format.format(date);
+        if(BuildConfig.DEBUG) Log.d("notification", tag + " " + data);
+        if(!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
+            writer.write("[" + time + "] - " + tag + " - " + data);
+            writer.newLine();
+            writer.write("[" + time + "] - " + tag + " - " + params);
+            writer.newLine();
+            writer.newLine();
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

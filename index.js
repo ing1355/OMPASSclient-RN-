@@ -1,5 +1,5 @@
 import 'react-native-reanimated'
-import { AppRegistry } from 'react-native';
+import { AppRegistry, Platform } from 'react-native';
 import App from './App';
 import React from 'react'
 import { name as appName } from './app.json';
@@ -15,15 +15,26 @@ export const silencePushClear = () => {
   silencePush = null
 }
 
+if(Platform.OS === 'ios') {
+  global.ErrorUtils.setGlobalHandler((error, isFatal) => {
+    saveDataToLogFile('ErrorUtils GlobalHandelr', error)
+    if(error.stack) {
+      const stackLines = error.stack.split('\n')
+      saveDataToLogFile('ErrorUtils GlobalHandelr(Detail)', stackLines)
+    }
+  })
+}
+
+saveDataToLogFile("Register Received PushEvent in Index Event Listener")
 CustomNativeEventEmitter.addListener('pushEvent', data => {
   saveDataToLogFile("Received PushEvent in Index", Platform.OS === 'android' ? data : data.data)
   silencePush = Platform.OS === 'android' ? data : data.data
 })
 
-CustomNativeEventEmitter.addListener("pushOpenedApp", (data) => {
-  saveDataToLogFile("Android Opened Push2 in Index", data)
-  silencePush = data
-})
+// CustomNativeEventEmitter.addListener("pushOpenedApp", (data) => {
+//   saveDataToLogFile("Android Opened Push2 in Index", data)
+//   silencePush = data
+// })
 
 const codePushOptions = {
   checkFrequency: CodePush.CheckFrequency.ON_APP_START,
@@ -37,9 +48,9 @@ const codePushOptions = {
   }
 };
 
-CodePush.getUpdateMetadata().then(res => {
-  console.log(res)
-})
+// CodePush.getUpdateMetadata().then(res => {
+//   console.log(res)
+// })
 
 // const codePushOptions = {
 //   checkFrequency: CodePush.CheckFrequency.언제체크할지설정,
@@ -47,16 +58,13 @@ CodePush.getUpdateMetadata().then(res => {
 //   mandatoryInstallMode: CodePush.InstallMode.설치모드설정,
 // };
 
-CodePush.sync({updateDialog: true}, (status, b, c) => {
-  
-  console.log('status : ',status, Object.keys(CodePush.SyncStatus)[status], b, c)
-}, (progress) => {
-  console.log('progress : ',progress)
-}).catch(err => {
-  console.log(err)
-})
-
-console.log('test12345')
+// CodePush.sync({}, (status, b, c) => {
+//   console.log('status : ',status, Object.keys(CodePush.SyncStatus)[status], b, c)
+// }, (progress) => {
+//   console.log('progress : ',progress)
+// }).catch(err => {
+//   console.log(err)
+// })
 
 const HeadlessCheck = CodePush(codePushOptions)(({data, isHeadless}) => {
   if (isHeadless) {

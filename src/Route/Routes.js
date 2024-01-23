@@ -472,10 +472,6 @@ function mapStateToProps(state) {
     isLoading: state.isLoading,
     Authentications: state.Authentications,
     currentAuth: state.currentAuth,
-    notificationToggle: state.notificationToggle,
-    notificationMsg: state.notificationMsg,
-    notificationTitle: state.notificationTitle,
-    notificationCallback: state.notificationCallback,
     iosType: state.iosType,
     needUpdate: state.needUpdate,
     isRoot: state.isRoot,
@@ -496,15 +492,6 @@ function mapDispatchToProps(dispatch) {
     },
     changeCurrentAuth: async (auth) => {
       dispatch(ActionCreators.settingCurrentAuth(auth));
-    },
-    changeNotificationToggle: (auth) => {
-      dispatch(ActionCreators.changeNotificationToggle(auth));
-    },
-    changeNotificationMsg: (auth) => {
-      dispatch(ActionCreators.changeNotificationMsg(auth));
-    },
-    changeNotificationTitle: (auth) => {
-      dispatch(ActionCreators.changeNotificationTitle(auth));
     },
     iosTypeToggle: (toggle) => {
       dispatch(ActionCreators.iosTypeToggle(toggle));
