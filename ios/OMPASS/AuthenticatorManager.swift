@@ -14,8 +14,6 @@ import CryptoSwift
 import Alamofire
 import SwiftyJSON
 
-import Firebase
-
 public enum UserVerification : String {
   
   case required = "Required"
@@ -533,7 +531,7 @@ class AuthenticatorManager {
                                                 signature: Base64.encodeBase64URL(assertion.response.signature),
                                                 userHandle: Base64.encodeBase64URL(assertion.response.userHandle!),
                                                 clientDataJSON: Base64.encodeBase64URL(assertion.response.clientDataJSON.data(using: .utf8)!))
-      
+      print("JSON : \(parameters)")
       if self.session != nil {
         let manager = ServerTrustManager(allHostsMustBeEvaluated: false, evaluators: [self.domain: DisabledTrustEvaluator()])
         let configuration = URLSessionConfiguration.af.default

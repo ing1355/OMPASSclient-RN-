@@ -2,8 +2,9 @@
 #import <React/RCTEventEmitter.h>
 #import <UserNotifications/UserNotifications.h>
 #import <UIKit/UIKit.h>
-#import <Firebase.h>
 
-@interface AppDelegate : RCTAppDelegate <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCenterDelegate, FIRMessagingDelegate>
+@interface AppDelegate : RCTAppDelegate <UIApplicationDelegate, RCTBridgeDelegate, UNUserNotificationCenterDelegate>
+
+@property (strong, nonatomic) NSString *deviceToken;
 
 @end
